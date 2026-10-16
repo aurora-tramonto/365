@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" role="img" aria-label="Dall'Aurora al Tramonto">
+  <!-- Marchio completo, variante chiara.
+       Composizione: tre luci (aurora / mezzodi / tramonto) sul cammino del sole,
+       con i due gradini del sentiero in basso.
+       Colori presi dai token dell'app: bg, ink, dawn, noon, dusk.
+       Nota: qui nei commenti non si possono usare due trattini di fila,
+       l'SVG standalone e' XML e si romperebbe. -->
+  <rect width="48" height="48" rx="11" fill="#f5f4f0"/>
+  <g fill="none" stroke="#1f2421" stroke-width="1.7" stroke-linecap="round">
+    <path d="M7.5 27a16.5 16.5 0 0 1 33 0" stroke-opacity=".32"/>
+    <rect x="13.5" y="28.6" width="21" height="5.2" rx="1.6"/>
+    <rect x="9.5" y="35.2" width="29" height="5.2" rx="1.6"/>
+  </g>
+  <circle cx="9.6" cy="21.4" r="3.5" fill="#e58e7a"/>
+  <circle cx="24" cy="10.6" r="3.5" fill="#e5b04b"/>
+  <circle cx="38.4" cy="21.4" r="3.5" fill="#6a6fb8"/>
+</svg>

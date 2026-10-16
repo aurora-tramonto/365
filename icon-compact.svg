@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" role="img" aria-label="Dall'Aurora al Tramonto">
+  <!-- Marchio COMPATTO: per 16 e 32 px (favicon, schede del browser).
+       I due gradini sono tolti e tratti e punti sono ingranditi, perche'
+       sotto i 40 px diventavano una macchia grigia. -->
+  <rect width="48" height="48" rx="11" fill="#f5f4f0"/>
+  <path d="M9 34a15 15 0 0 1 30 0" fill="none" stroke="#1f2421" stroke-opacity=".34" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="11.7" cy="25.4" r="5" fill="#e58e7a"/>
+  <circle cx="24" cy="19" r="5" fill="#e5b04b"/>
+  <circle cx="36.3" cy="25.4" r="5" fill="#6a6fb8"/>
+</svg>
