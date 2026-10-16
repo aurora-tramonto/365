@@ -1,0 +1,109 @@
+/* ============================================================
+   Barra in basso con icone — innesto, non il disegno completo.
+   Generato da proposte/patch-barra-basso.py: non modificare a mano.
+   ============================================================ */
+
+/* spazio per non coprire il contenuto con la barra fissa */
+body {
+  padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+}
+
+.tabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 60;
+  max-width: 560px;
+  margin: 0 auto;
+  border-bottom: 0;
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -2px 22px rgba(31, 36, 33, 0.07);
+  padding: 6px 4px calc(8px + env(safe-area-inset-bottom, 0px));
+}
+
+.tabs button {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 2px 5px;
+  min-height: 52px;
+  font: 500 10px var(--body);
+  letter-spacing: 0.01em;
+  color: var(--soft);
+}
+
+.tabs button:hover,
+.tabs button[aria-selected="true"] {
+  color: var(--ink);
+}
+
+/* l'icona: la forma arriva dalla maschera, il colore da currentColor */
+.tabs button::before {
+  content: "";
+  width: 21px;
+  height: 21px;
+  background: currentColor;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: 21px 21px;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: 21px 21px;
+}
+
+/* 1. Oggi */
+.tabs button:nth-child(1)::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 19.5h18'/%3E%3Cpath d='M7 19.5a5 5 0 0 1 10 0'/%3E%3Cpath d='M12 9.2V6.4M6.2 12.4 4.6 10.8M17.8 12.4l1.6-1.6'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 19.5h18'/%3E%3Cpath d='M7 19.5a5 5 0 0 1 10 0'/%3E%3Cpath d='M12 9.2V6.4M6.2 12.4 4.6 10.8M17.8 12.4l1.6-1.6'/%3E%3C/svg%3E");
+}
+
+/* 2. Libri */
+.tabs button:nth-child(2)::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5.5A2.5 2.5 0 0 1 6.5 3H19v16H6.5A2.5 2.5 0 0 0 4 21.5z'/%3E%3Cpath d='M4 18.5h15'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 5.5A2.5 2.5 0 0 1 6.5 3H19v16H6.5A2.5 2.5 0 0 0 4 21.5z'/%3E%3Cpath d='M4 18.5h15'/%3E%3C/svg%3E");
+}
+
+/* 3. Serie */
+.tabs button:nth-child(3)::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20.5V13M9.3 20.5V7M14.7 20.5v-5M20 20.5V4'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 20.5V13M9.3 20.5V7M14.7 20.5v-5M20 20.5V4'/%3E%3C/svg%3E");
+}
+
+/* 4. Piano */
+.tabs button:nth-child(4)::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2.5'/%3E%3Cpath d='M3 10h18M8 3v4M16 3v4'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='2.5'/%3E%3Cpath d='M3 10h18M8 3v4M16 3v4'/%3E%3C/svg%3E");
+}
+
+/* 5. Impostazioni */
+.tabs button:nth-child(5)::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M12 2.8v2.4M12 18.8v2.4M4.5 7.5l2.1 1.2M17.4 15.3l2.1 1.2M4.5 16.5l2.1-1.2M17.4 8.7l2.1-1.2'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M12 2.8v2.4M12 18.8v2.4M4.5 7.5l2.1 1.2M17.4 15.3l2.1 1.2M4.5 16.5l2.1-1.2M17.4 8.7l2.1-1.2'/%3E%3C/svg%3E");
+}
+
+/* la voce attiva: icona nel colore d'accento, come nel prototipo */
+.tabs button[aria-selected="true"]::before {
+  background: var(--accent);
+}
+
+/* la voce attiva si riconosce dal colore: la barretta scorrevole non serve piu' */
+.tabs .ind {
+  display: none;
+}
+
+/* su schermo largo l'app allarga la colonna a 1040px (soglia 880px, la stessa
+   dell'app): la barra segue, cosi' resta allineata al contenuto invece di
+   galleggiare piu' stretta al centro */
+@media (min-width: 880px) {
+  .tabs { max-width: 1040px; }
+}
+
+@media print {
+  .tabs { display: none; }
+  body { padding-bottom: 0; }
+}
