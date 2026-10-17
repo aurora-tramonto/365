@@ -377,6 +377,51 @@ html .row.done {
   border-radius: var(--r-sm);
 }
 
+/* Su schermo largo i tre momenti sono tre colonne affiancate: la colonna del
+   momento attuale e' colorata da un bordo all'altro, e si vede che e' piena.
+   Sotto gli 880px le colonne diventano righe dentro la card, e la stessa
+   fascia restava larga quanto il testo — un riquadro colorato dentro un altro
+   riquadro, che sembra tagliato. Qui la fascia arriva ai bordi della card,
+   come la colonna: `-20px` e' l'imbottitura orizzontale della card, e il
+   `padding` la compensa, quindi il contenuto non si sposta di un pixel. */
+@media (max-width: 879px) {
+  html .card.today { overflow: hidden; }
+
+  html .card.today .row {
+    margin-left: -20px;
+    margin-right: -20px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  /* la barra colorata resta dov'era: prima stava a -20px dal testo, ora la
+     riga comincia 20px piu' a sinistra, quindi torna al suo posto con 0 */
+  html .card.today .row::before { left: 0; }
+
+  /* la fascia e' piena: gli angoli li dà la card, che ora ritaglia */
+  html .card.today .row:has(.dot[style*="--dawn"]),
+  html .card.today .row:has(.dot[style*="--noon"]),
+  html .card.today .row:has(.dot[style*="--dusk"]),
+  html .card.today .row.done { border-radius: 0; }
+}
+
+/* Appena sopra gli 880px la card non ha ancora spazio per tre colonne con le
+   loro letture: la colonna del Tramonto esce dalla card, «Modifica» e la
+   «successiva» finiscono fuori dal bordo e vengono tagliate. Non e' colpa
+   dell'interfaccia Aurora — succede anche senza questo foglio — ma la fascia
+   colorata, tagliata a meta', e' proprio quello che si vede. Qui le colonne
+   diventano davvero pari (come voleva `1fr`) e i due lati respirano di 10px in
+   meno, finche' la card torna a contenerle. Sopra i 1020px non serve e non
+   viene applicato niente. */
+@media (min-width: 880px) and (max-width: 1020px) {
+  html .card.today { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  html .card.today.n1 { grid-template-columns: minmax(0, 1fr); }
+  html .card.today.n2,
+  html .card.today.n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  html .card.today.n5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  html .card.today .row { padding-left: 16px; padding-right: 16px; }
+}
+
 
 /* ============================================================================
    §6 — CARD, TESTI, LISTE
@@ -545,7 +590,325 @@ html .book {
 
 
 /* ============================================================================
-   §10 — STAMPA E MOVIMENTO RIDOTTO
+   §10 — ACCOUNT E SINCRONIZZAZIONE
+   La striscia la crea aurora-sync.js, e la crea SOLO quando Firebase e'
+   configurato: senza configurazione quella classe non esiste, quindi qui non
+   si vede niente e non si riserva nemmeno lo spazio. La classe
+   `aurora-con-account` sull'elemento <html> e' l'interruttore: la mette il
+   modulo quando parte.
+   ============================================================================ */
+
+html .aurora-account { display: none; }
+
+html.aurora-con-account .aurora-account {
+  display: flex;
+  justify-content: center;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--aurora-barra-h, 69px);
+  z-index: 55;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--line-soft);
+}
+
+/* la striscia occupa spazio: va riservato, o coprirebbe la fine della pagina */
+html.aurora-con-account body {
+  padding-bottom: calc(136px + env(safe-area-inset-bottom, 0px));
+}
+
+html .aurora-account-tasto {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 8px 16px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--ink);
+  font: 500 12.5px var(--body);
+  text-align: left;
+}
+
+html .aurora-account-tasto:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+html .aurora-account-testo {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html .aurora-account-freccia { color: var(--soft); font-size: 16px; line-height: 1; }
+
+/* il puntino dice lo stato a colpo d'occhio, senza leggere */
+html .aurora-account-punto {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: var(--r-pill);
+  background: var(--faint);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--faint) 22%, transparent);
+}
+
+html .aurora-account[data-stato=acceso] .aurora-account-punto { background: var(--accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent); }
+html .aurora-account[data-stato=fatto] .aurora-account-punto { background: var(--ok); box-shadow: 0 0 0 4px color-mix(in srgb, var(--ok) 22%, transparent); }
+html .aurora-account[data-stato=errore] .aurora-account-punto { background: var(--warn); box-shadow: 0 0 0 4px color-mix(in srgb, var(--warn) 22%, transparent); }
+
+html .aurora-account[data-stato=attesa] .aurora-account-punto {
+  background: var(--accent);
+  animation: aurora-attesa 1.1s ease-in-out infinite;
+}
+
+@keyframes aurora-attesa {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .45; transform: scale(.8); }
+}
+
+/* ---------------- il pannello che si apre toccando la striscia -------------- */
+
+html .aurora-foglio-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 95;                       /* sopra la barra (60) e sopra la finestra dell'app (90) */
+  background: hsla(0, 0%, 8%, .45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: aurora-entra .3s var(--ease) both;
+}
+
+html .aurora-foglio-bg[hidden] { display: none; }
+
+html .aurora-foglio {
+  background: var(--bg);
+  color: var(--ink);
+  border-radius: 22px;
+  box-shadow: var(--sh-2);
+  padding: 24px 22px 18px;
+  max-width: 420px;
+  width: 100%;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+html .aurora-foglio h2 {
+  margin: 0 0 8px;
+  font: 400 24px/1.15 var(--display);
+}
+
+html .aurora-foglio-stato {
+  margin: 0 0 12px;
+  font: 500 14px var(--body);
+  color: var(--ink);
+}
+
+html .aurora-foglio-spiega {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--soft);
+  text-align: left;
+}
+
+html .aurora-foglio-azioni {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+html .aurora-foglio-tasto {
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font: 600 13.5px var(--body);
+  cursor: pointer;
+  transition: all var(--t-mid) var(--ease);
+}
+
+html .aurora-foglio-tasto:hover { border-color: var(--ink); }
+html .aurora-foglio-tasto:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* il primo pulsante e' l'azione principale: si vede che lo e' */
+html .aurora-foglio-azioni .aurora-foglio-tasto:first-child {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+/* «questo dispositivo vince» sovrascrive: lo tengo discreto, non invoglia */
+html .aurora-foglio-tasto.piano { color: var(--soft); font-weight: 500; }
+
+html .aurora-foglio-chiudi {
+  display: block;
+  margin: 0 auto;
+  padding: 8px 12px;
+  border: 0;
+  background: none;
+  color: var(--soft);
+  font: 500 12.5px var(--body);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@media (min-width: 880px) {
+  html.aurora-con-account .aurora-account { max-width: 1040px; }
+  html .aurora-account-tasto { justify-content: center; }
+}
+
+@media print {
+  html.aurora-con-account .aurora-account,
+  html .aurora-foglio-bg { display: none !important; }
+  html.aurora-con-account body { padding-bottom: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html .aurora-account[data-stato=attesa] .aurora-account-punto { animation: none !important; }
+  html .aurora-foglio-bg { animation: none !important; }
+}
+
+
+/* ============================================================================
+   §10b — IL PULSANTE «CONFERMA …»
+   L'azione di oggi, una sola: sa dall'orologio quale lettura tocca e la segna
+   premendo la casella che l'app ha già disegnato (aurora-oggi.js). Il pallino
+   colorato è lo stesso linguaggio delle righe, così si capisce a colpo d'occhio
+   di quale momento si sta parlando.
+   ============================================================================ */
+
+html .aurora-conferma {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  min-height: 54px;
+  margin: -2px 0 18px;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--ink);
+  color: var(--bg);
+  font: 600 15px/1.2 var(--body);
+  cursor: pointer;
+  box-shadow: var(--sh-1);
+  transition: transform var(--t-fast) var(--ease), opacity var(--t-fast) var(--ease);
+}
+
+html .aurora-conferma-riga {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+/* il pallino del momento: prende il colore dalla riga che sta per segnare */
+html .aurora-conferma-riga i {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: var(--r-pill);
+  background: var(--mc, currentColor);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mc, currentColor) 30%, transparent);
+}
+
+html .aurora-conferma[data-momento=dawn] { --mc: var(--dawn); }
+html .aurora-conferma[data-momento=noon] { --mc: var(--noon); }
+html .aurora-conferma[data-momento=dusk] { --mc: var(--dusk); }
+
+html .aurora-conferma-spiega {
+  display: block;
+  font: 400 11.5px/1.3 var(--body);
+  opacity: .72;
+  text-align: center;
+  text-wrap: balance;
+}
+
+html .aurora-conferma:hover { opacity: .93; }
+html .aurora-conferma:active { transform: scale(.99); }
+html .aurora-conferma:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+html .aurora-conferma[disabled] { opacity: .42; cursor: default; transform: none; }
+
+/* a letture finite il pulsante non è più un invito: diventa un traguardo */
+html .aurora-conferma[data-completo] {
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--line-soft);
+}
+html .aurora-conferma[data-completo] .aurora-conferma-riga i { display: none; }
+
+
+/* ============================================================================
+   §11 — PROMEMORIA
+   La card che sta nelle Impostazioni (aurora-promemoria.js). Riusa i pezzi
+   dell'app (.card, .chip, .msg) e aggiunge solo la griglia della riga: nome,
+   interruttore, ora. Su 360 px ci stanno tutte e tre senza andare a capo.
+   ============================================================================ */
+
+html .aurora-prom-elenco { margin: 2px 0 12px; }
+
+html .aurora-prom-riga {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+html .aurora-prom-riga:first-child { border-top: 0; }
+
+html .aurora-prom-nome { font: 600 14px var(--body); }
+
+html .aurora-prom-tasto { min-width: 82px; }
+
+html input.aurora-prom-ora {
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 13px var(--body);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+html input.aurora-prom-ora::-webkit-calendar-picker-indicator { opacity: .55; cursor: pointer; }
+
+/* spenta: il campo sparisce ma tiene il suo posto, cosi' gli interruttori
+   restano tutti sulla stessa colonna */
+html .aurora-prom-riga.spento input.aurora-prom-ora { visibility: hidden; }
+
+/* l'esito resta nello spazio: cosi' la card non salta quando compare */
+html .aurora-prom-esito { min-height: 1.2em; }
+
+html .aurora-prom-avviso {
+  font-size: 11.5px;
+  line-height: 1.35;
+  opacity: .68;
+}
+
+html .aurora-prom-crea[disabled] { opacity: .45; cursor: default; }
+
+
+/* ============================================================================
+   §12 — STAMPA E MOVIMENTO RIDOTTO
    Chi stampa il piano non ha bisogno della barra fissa.
    Chi ha chiesto meno movimento non deve riceverne: l'app spegne gia' tutto con
    `!important`, queste righe servono solo a non dipendere da quella regola.
@@ -553,6 +916,7 @@ html .book {
 
 @media print {
   html .tabs { display: none; }
+  html .aurora-conferma { display: none; }
   html body { padding-bottom: 0; }
 }
 
@@ -564,9 +928,736 @@ html .book {
   html .stat,
   html .book,
   html .tabpane,
-  html .calpane {
+  html .calpane,
+  html .aurora-conferma {
     animation: none !important;
     transition: none !important;
   }
   html { transition: none; }
 }
+
+
+/* ============================================================================
+   §13 — «INIZIA DA»: LE SCELTE CHE NON SI POSSONO FARE
+   L'avviso di aurora-inizi.js, dentro il riquadro «Scegli da quale libro parte
+   ogni lettura». Sta nel posto dove si sbaglia, non in fondo alla pagina, e
+   usa il rosso d'avviso già presente nell'app (--warn) per non sembrare un
+   consiglio qualsiasi.
+   ============================================================================ */
+
+html .aurora-inizi {
+  margin: 12px 0 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--warn);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+html .aurora-inizi-titolo { display: block; font-weight: 600; color: var(--warn); }
+
+html .aurora-inizi-riga { display: block; margin-top: 6px; }
+
+html .aurora-inizi-riga b { font-weight: 600; }
+
+html .aurora-inizi-rimedio { display: block; margin-top: 8px; color: var(--soft); }
+
+
+/* ============================================================================
+   §14 — DOVE VIVE IL PIANO (aurora-dati.js)
+   La card nelle Impostazioni, la riga in cima a «Oggi» e il lampo che indica
+   la voce «File di backup» quando si tocca «Portami lì».
+   ============================================================================ */
+
+html .aurora-dati-riga { margin-top: 10px; }
+
+html .aurora-dati-tasto { min-width: 120px; }
+
+html .aurora-dati-avviso {
+  margin: 0 0 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+html .aurora-dati-avviso .msg { margin: 0; }
+
+html .aurora-dati-lampo {
+  animation: aurora-dati-lampo 2.4s ease-out both;
+}
+
+@keyframes aurora-dati-lampo {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); }
+  25% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 34%, transparent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html .aurora-dati-lampo { animation: none; outline: 2px solid var(--accent); outline-offset: 3px; }
+}
+
+
+/* ============================================================================
+   §15 — GIRI E RILETTURE (aurora-giri.js)
+   Nella scheda Libri i pallini mostrano la PRIMA lettura, quindi durante una
+   rilettura restano tutti verdi. Qui i capitoli del giro in corso prendono un
+   punto dentro il cerchio (verde con il buco = di questo giro; pallino colorato
+   = di questo giro ma non ancora verde dalla prima volta) e quelli letti più di
+   una volta un numero piccolo in alto a destra.
+   ============================================================================ */
+
+html .ch { position: relative; }
+
+/* il capitolo del giro in corso */
+html .ch.aurora-giro::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+html .ch.aurora-giro.f::after,
+html .ch.aurora-giro.p::after { background: var(--bg); }
+
+html .ch.aurora-giro:not(.f):not(.p)::after { background: var(--accent); }
+
+/* quante volte è stato letto (solo da 2 in su: l'1 è la norma) */
+html .ch[data-aurora-volte]::before {
+  content: attr(data-aurora-volte);
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 9px;
+  height: 9px;
+  padding: 0 1px;
+  border-radius: 999px;
+  border: 1px solid var(--surface);
+  background: var(--accent);
+  color: var(--bg);
+  font: 600 7px/9px var(--body);
+  text-align: center;
+  pointer-events: none;
+}
+
+/* a che punto è il giro in corso: una riga sotto i pallini, dove c'è spazio */
+html .aurora-giro-riga {
+  display: block;
+  margin-top: 7px;
+  font-size: 11.5px;
+  font-style: normal;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* la card nelle Impostazioni */
+html .aurora-giri-numeri {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin: 4px 0 10px;
+}
+
+html .aurora-giri-numero {
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: 14px;
+  padding: 10px 12px;
+}
+
+html .aurora-giri-numero b {
+  display: block;
+  font: 400 26px var(--display);
+  line-height: 1.1;
+}
+
+html .aurora-giri-numero span { font-size: 11.5px; color: var(--soft); }
+
+html .aurora-giri-elenco {
+  margin: 2px 0 10px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+html .aurora-giri-riga {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  padding: 5px 0;
+  border-top: 1px solid var(--line-soft);
+  font-size: 13px;
+}
+
+html .aurora-giri-riga:first-child { border-top: 0; }
+
+html .aurora-giri-riga b { font-weight: 600; }
+
+html .aurora-giri-riga span { color: var(--soft); }
+
+html .aurora-giri-tasto { margin: 0 8px 8px 0; }
+
+/* ============================================================================
+   IL MARCHIO CHE SI ACCENDE (aurora-logo.js)
+   Alba e tramonto salgono sull'arco verso il mezzodì e tornano; qui c'è solo
+   la luce. Il movimento è nelle coordinate (cx/cy), quindi i puntini non
+   possono staccarsi dalla linea.
+   ============================================================================ */
+html .logo .ld { transition: filter .35s var(--ease); }
+
+html .logo.aurora-logo-acceso .l0 { filter: drop-shadow(0 0 4px var(--dawn)); }
+html .logo.aurora-logo-acceso .l1 { filter: drop-shadow(0 0 5px var(--noon)); }
+html .logo.aurora-logo-acceso .l2 { filter: drop-shadow(0 0 4px var(--dusk)); }
+
+/* ============================================================================
+   IL LOGIN CHE SI ACCENDE (aurora-sync.js)
+   Poche cose, tutte legate al marchio:
+     · il foglio «sorge» e la linea in cima si accende con i colori del giorno;
+     · sopra il titolo c'è l'arco del logo, che si disegna e accende le tre luci;
+     · mentre si aspetta, una cometa percorre l'arco (alba → mezzodì → tramonto);
+     · titolo, stato e spiegazione salgono in cascata;
+     · senza accesso il primo pulsante respira piano: è la porta;
+     · la luce sul pulsante al passaggio del mouse;
+     · quando è fatto una scia tiepida attraversa il foglio e la spunta si disegna;
+     · chiudendolo scende e si spegne, invece di sparire di colpo;
+     · la striscia in basso che, mentre aspetta, gira fra alba, mezzodì e tramonto.
+   ========================================================================== */
+
+/* --- il foglio che sorge ---------------------------------------------------- */
+
+html .aurora-foglio {
+  position: relative;
+  animation: aurora-sorge .42s var(--ease) both;
+}
+
+@keyframes aurora-sorge {
+  0%   { opacity: 0; transform: translateY(16px) scale(.982); }
+  100% { opacity: 1; transform: none; }
+}
+
+/* e se ne va con lo stesso gesto, al contrario: scende e si spegne.
+   La classe «via» la mette aurora-sync.js; il pannello sparisce dopo 190 ms. */
+html .aurora-foglio-bg.aurora-foglio-via {
+  animation: aurora-via .19s var(--ease) both;
+}
+
+html .aurora-foglio-bg.aurora-foglio-via .aurora-foglio {
+  animation: aurora-scende .19s var(--ease) both;
+}
+
+@keyframes aurora-via {
+  to { opacity: 0; }
+}
+
+@keyframes aurora-scende {
+  to { opacity: 0; transform: translateY(10px) scale(.99); }
+}
+
+/* la linea in cima: si accende da sinistra a destra, coi tre colori del giorno */
+html .aurora-foglio::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  border-radius: 22px 22px 0 0;
+  background: linear-gradient(90deg, var(--dawn), var(--noon), var(--dusk));
+  transform-origin: left;
+  animation: aurora-sorgente .85s var(--ease) both;
+}
+
+@keyframes aurora-sorgente {
+  0%   { transform: scaleX(0); opacity: 0; }
+  22%  { opacity: 1; }
+  100% { transform: scaleX(1); opacity: 1; }
+}
+
+/* --- il cielo del pannello: l'arco del marchio, in piccolo ------------------- */
+/*  Non tre puntini in fila, ma la stessa figura del logo: un arco e le tre luci
+    posate SOPRA la linea, per costruzione. Centro (38,36), raggio 30, e i due
+    estremi dell'arco SONO le luci dell'alba e del tramonto:
+      sinistra (10.594, 23.801) · centro (38, 6) · destra (65.406, 23.801)
+    Così la cometa parte da una luce e arriva all'altra. */
+
+html .aurora-foglio-cielo {
+  margin: 0 0 10px -8px;
+  line-height: 0;
+  opacity: .72;
+  transition: opacity var(--t-mid) var(--ease);
+}
+
+html .aurora-foglio-cielo svg {
+  width: 96px;
+  height: 40px;
+  overflow: visible;
+}
+
+html .aurora-foglio-cielo stop.s1 { stop-color: var(--dawn); }
+html .aurora-foglio-cielo stop.s2 { stop-color: var(--noon); }
+html .aurora-foglio-cielo stop.s3 { stop-color: var(--dusk); }
+
+/* l'arco si disegna da sinistra a destra, mentre il foglio sorge */
+html .aurora-foglio-cielo .filo {
+  fill: none;
+  stroke: url(#aurora-cielo-filo);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 100;
+  animation: aurora-arco .85s .08s var(--ease) both;
+}
+
+@keyframes aurora-arco {
+  0%   { stroke-dashoffset: 100; opacity: 0; }
+  20%  { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
+}
+
+/* le tre luci si accendono quando il tratto arriva: prima la sinistra */
+html .aurora-foglio-cielo .luce {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: aurora-luce .48s var(--ease-pop) both;
+}
+
+/* le luci si accendono quando il tratto arriva loro: sinistra, cima, destra */
+html .aurora-foglio-cielo .l1 { fill: var(--dawn); animation-delay: .24s; }
+html .aurora-foglio-cielo .l2 { fill: var(--noon); animation-delay: .52s; }
+html .aurora-foglio-cielo .l3 { fill: var(--dusk); animation-delay: .88s; }
+
+@keyframes aurora-luce {
+  0%   { transform: scale(0); opacity: 0; }
+  62%  { transform: scale(1.4); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* la cometa: una luce che percorre l'arco mentre si aspetta il cloud.
+   È la stessa idea dell'animazione B del logo (alba → mezzodì → tramonto),
+   ma qui scorre sulla linea invece di spostare i puntini. */
+html .aurora-foglio-cielo .cometa {
+  fill: none;
+  stroke: var(--noon);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-dasharray: 7 93;
+  stroke-dashoffset: 0;
+  opacity: 0;
+  filter: drop-shadow(0 0 3px var(--noon));
+}
+
+html .aurora-foglio[data-stato=attesa] .aurora-foglio-cielo .cometa {
+  animation: aurora-viaggia 1.9s linear infinite;
+}
+
+@keyframes aurora-viaggia {
+  0%   { stroke-dashoffset: 0;   opacity: 0; }
+  12%  { opacity: 1; }
+  86%  { opacity: 1; }
+  100% { stroke-dashoffset: -100; opacity: 0; }
+}
+
+/* mentre si accede o si salva, il giorno passa: una luce per volta */
+html .aurora-foglio[data-stato=attesa] .aurora-foglio-cielo .luce {
+  animation: aurora-giorno 1.5s ease-in-out infinite;
+}
+
+html .aurora-foglio[data-stato=attesa] .aurora-foglio-cielo .l2 { animation-delay: .25s; }
+html .aurora-foglio[data-stato=attesa] .aurora-foglio-cielo .l3 { animation-delay: .5s; }
+
+@keyframes aurora-giorno {
+  0%, 100% { opacity: .3; transform: scale(.9); }
+  45%      { opacity: 1; transform: scale(1.4); }
+}
+
+/* con l'accesso fatto: arco e luci accesi, ciascuna col suo colore */
+html .aurora-foglio[data-accesso=si] .aurora-foglio-cielo,
+html .aurora-foglio[data-stato=attesa] .aurora-foglio-cielo { opacity: 1; }
+
+html .aurora-foglio[data-stato=fatto] .aurora-foglio-cielo { opacity: 1; }
+
+html .aurora-foglio[data-stato=fatto] .aurora-foglio-cielo .filo {
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--noon) 55%, transparent));
+}
+
+html .aurora-foglio[data-stato=fatto] .aurora-foglio-cielo .l1 { filter: drop-shadow(0 0 4px var(--dawn)); }
+html .aurora-foglio[data-stato=fatto] .aurora-foglio-cielo .l2 { filter: drop-shadow(0 0 5px var(--noon)); }
+html .aurora-foglio[data-stato=fatto] .aurora-foglio-cielo .l3 { filter: drop-shadow(0 0 4px var(--dusk)); }
+
+/* se qualcosa non va, il cielo si spegne: nessuno scossone, solo meno luce */
+html .aurora-foglio[data-stato=errore] .aurora-foglio-cielo { opacity: .35; }
+
+/* la scia tiepida che attraversa il foglio quando l'accesso è riuscito */
+html .aurora-foglio[data-stato=fatto]::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(115% 78% at 40px 26px,
+              color-mix(in srgb, var(--noon) 26%, transparent), transparent 62%);
+  animation: aurora-fiorisce 1.15s var(--ease) both;
+}
+
+@keyframes aurora-fiorisce {
+  0%   { opacity: 0; }
+  28%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* --- il testo che sale, una riga dopo l'altra -------------------------------- */
+
+html .aurora-foglio h2 { animation: aurora-su .5s .1s var(--ease) both; }
+html .aurora-foglio-stato { animation: aurora-su .45s .17s var(--ease) both; }
+html .aurora-foglio-spiega { animation: aurora-su .45s .23s var(--ease) both; }
+
+/* --- i pulsanti: la luce che passa sopra ------------------------------------ */
+
+html .aurora-foglio-azioni > * {
+  animation: aurora-su .4s var(--ease) both;
+}
+
+/* senza accesso il primo pulsante è la porta: respira piano, senza fretta.
+   Solo da fermi: durante l'accesso e dopo un errore la luce resta ferma. */
+html .aurora-foglio[data-stato=acceso] .aurora-foglio-azioni > :first-child {
+  animation: aurora-su .4s var(--ease) both,
+             aurora-invito 4.8s 1s ease-in-out infinite;
+}
+
+@keyframes aurora-invito {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--noon) 0%, transparent); }
+  50%      { box-shadow: 0 0 0 1px color-mix(in srgb, var(--noon) 12%, transparent),
+                         0 8px 26px -8px color-mix(in srgb, var(--noon) 55%, transparent); }
+}
+
+html .aurora-foglio-azioni > *:nth-child(2) { animation-delay: .06s; }
+html .aurora-foglio-azioni > *:nth-child(3) { animation-delay: .12s; }
+html .aurora-foglio-azioni > *:nth-child(4) { animation-delay: .18s; }
+
+@keyframes aurora-su {
+  0%   { opacity: 0; transform: translateY(7px); }
+  100% { opacity: 1; transform: none; }
+}
+
+html .aurora-foglio-tasto {
+  position: relative;
+  overflow: hidden;
+}
+
+html .aurora-foglio-tasto::after {
+  content: '';
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  left: -60%;
+  width: 40%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .22), transparent);
+  transform: skewX(-16deg);
+  pointer-events: none;
+}
+
+html .aurora-foglio-tasto:hover::after,
+html .aurora-foglio-tasto:focus-visible::after {
+  animation: aurora-filo .62s var(--ease);
+}
+
+@keyframes aurora-filo {
+  0%   { left: -60%; }
+  100% { left: 130%; }
+}
+
+html .aurora-foglio-tasto:active {
+  transform: scale(.985);
+}
+
+/* --- fatto: la spunta si disegna ------------------------------------------- */
+
+html .aurora-foglio[data-stato=fatto] .aurora-foglio-stato::after {
+  content: '';
+  display: inline-block;
+  width: 10px;
+  height: 5px;
+  margin-left: 9px;
+  vertical-align: 2px;
+  border-left: 2px solid var(--ok);
+  border-bottom: 2px solid var(--ok);
+  transform: rotate(-45deg) scaleX(0);
+  transform-origin: left center;
+  animation: aurora-spunta .38s .08s var(--ease) forwards;
+}
+
+@keyframes aurora-spunta {
+  to { transform: rotate(-45deg) scaleX(1); }
+}
+
+/* --- errore: si accende di rosso, una volta, senza scossoni ----------------- */
+
+html .aurora-foglio[data-stato=errore] .aurora-foglio-stato {
+  color: var(--warn);
+  animation: aurora-avviso 1.1s var(--ease) both;
+}
+
+@keyframes aurora-avviso {
+  0%   { opacity: .35; }
+  40%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+/* --- la striscia: mentre aspetta, il colore del giorno gira ----------------- */
+
+html .aurora-account[data-stato=attesa] .aurora-account-punto,
+html .aurora-account[data-stato=acceso] .aurora-account-punto {
+  animation: aurora-attesa 1.1s ease-in-out infinite, aurora-colori 3.6s linear infinite;
+}
+
+@keyframes aurora-colori {
+  0%, 100% { background: var(--dawn); }
+  33%      { background: var(--noon); }
+  66%      { background: var(--dusk); }
+}
+
+/* chi ha chiesto meno movimento: niente corse, resta solo il colore dello stato */
+@media (prefers-reduced-motion: reduce) {
+  html .aurora-foglio,
+  html .aurora-foglio::before,
+  html .aurora-foglio-azioni > *,
+  html .aurora-foglio h2,
+  html .aurora-foglio-bg.aurora-foglio-via,
+  html .aurora-foglio-bg.aurora-foglio-via .aurora-foglio,
+  html .aurora-foglio-stato,
+  html .aurora-foglio-spiega,
+  html .aurora-foglio-cielo .filo,
+  html .aurora-foglio-cielo .luce,
+  html .aurora-foglio-cielo .cometa,
+  html .aurora-foglio[data-stato=acceso] .aurora-foglio-azioni > :first-child,
+  html .aurora-foglio[data-stato=fatto]::after,
+  html .aurora-foglio[data-stato=fatto] .aurora-foglio-stato::after,
+  html .aurora-foglio[data-stato=errore] .aurora-foglio-stato,
+  html .aurora-foglio-tasto::after {
+    animation: none !important;
+  }
+  /* senza animazione l'arco deve restare disegnato e i puntini visibili */
+  html .aurora-foglio-cielo .filo { stroke-dashoffset: 0; opacity: 1; }
+  html .aurora-foglio-cielo .luce { transform: none; opacity: 1; }
+  html .aurora-foglio-cielo .cometa { opacity: 0; }
+  html .aurora-foglio[data-stato=fatto] .aurora-foglio-stato::after {
+    transform: rotate(-45deg) scaleX(1);
+  }
+}
+
+
+/* ============================================================================
+   «DOVE SEI ARRIVATO?» — il salto di lettura rifatto (aurora-salta.js)
+   Una domanda sola al posto dei due campi: dove sei, cosa succederà, e un
+   pulsante che cambia da solo. Le righe vere dell'app restano nel documento
+   (servono a lei per fare il lavoro) ma non si vedono.
+   ========================================================================== */
+
+html .aurora-salta-via { display: none !important; }
+
+html .aurora-salta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+html .aurora-salta-dove {
+  margin: 0;
+  font: 500 12px var(--body);
+  color: var(--soft);
+}
+
+html .aurora-salta-domanda {
+  margin: 0;
+  font: 500 13px var(--body);
+  color: var(--ink);
+}
+
+/* il campo non deve allungarsi in verticale: qui il contenitore è una colonna */
+html .aurora-salta-campo {
+  flex: none;
+  width: 100%;
+}
+
+/* la riga che dice cosa succederà: sembra una nota, non un secondo campo */
+html .aurora-salta-eco {
+  margin: 0;
+  padding: 9px 11px;
+  border-radius: 12px;
+  border: 1px solid var(--line-soft);
+  background: var(--bg);
+  color: var(--soft);
+  font-size: 12.5px;
+  line-height: 1.45;
+  min-height: 38px;
+}
+
+html .aurora-salta-eco.ok { border-color: color-mix(in srgb, var(--ok) 45%, var(--line-soft)); }
+html .aurora-salta-eco.err { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, var(--line-soft)); }
+
+html .aurora-salta-fai { margin-top: 2px; }
+
+html .aurora-salta-sotto {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: center;
+}
+
+html .aurora-salta-sotto:empty { display: none; }
+
+
+/* ============================================================================
+   IL SALTO A DITO — libro, capitolo, versetto (aurora-salta.js)
+   Al posto della casella di testo: tre passi che si toccano, i capitoli già
+   letti segnati, e le domande prima di premere. Le regole stanno qui perché
+   il modulo aggiunge solo il disegno: colori e raggi sono quelli dell'app.
+   ========================================================================== */
+
+html .aurora-salta-scelta {
+  display: grid;
+  grid-template-columns: 1.15fr .9fr 1.25fr;
+  gap: 6px;
+}
+
+html .aurora-salta-passo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  min-height: 46px;
+  min-width: 0;
+  padding: 7px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--soft);
+  font: 600 14px var(--body);
+  line-height: 1.15;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+html .aurora-salta-passo > span {
+  font: 500 10px var(--body);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--soft);
+  opacity: .75;
+}
+
+html .aurora-salta-passo.pieno {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line-soft));
+  background: color-mix(in srgb, var(--accent) 7%, var(--bg));
+}
+
+html .aurora-salta-passo[aria-expanded=true] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+html .aurora-salta-passo:disabled { opacity: .42; }
+
+/* l'elenco che si apre sotto i passi */
+html .aurora-salta-lista {
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 14px;
+  background: var(--bg);
+  animation: aurora-salta-apre .18s var(--ease) both;
+}
+
+html .aurora-salta-lista[hidden] { display: none !important; }
+
+@keyframes aurora-salta-apre {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+html .aurora-salta-cerca {
+  width: 100%;
+  margin-bottom: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+html .aurora-salta-cerca[hidden] { display: none !important; }
+
+html .aurora-salta-griglia {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+html .aurora-salta-cella {
+  position: relative;
+  min-width: 38px;
+  min-height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 9px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 600 13px var(--body);
+}
+
+/* già letto: fondo verde tenue e un punto in alto a destra */
+html .aurora-salta-cella.letto {
+  color: var(--soft);
+  background: var(--ok-bg);
+  border-color: color-mix(in srgb, var(--ok) 26%, var(--line-soft));
+}
+
+html .aurora-salta-cella.letto::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+
+html .aurora-salta-cella.parte::after { background: color-mix(in srgb, var(--ok) 50%, var(--soft)); }
+
+html .aurora-salta-cella.ora { box-shadow: inset 0 0 0 1px var(--accent); }
+
+html .aurora-salta-cella[aria-pressed=true] {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+html .aurora-salta-cella[aria-pressed=true]::after { background: var(--bg); }
+
+/* la domanda prima di premere: «hai letto tutto fino a qui?» */
+html .aurora-salta-chiede {
+  margin: 0;
+  font: 600 13px var(--body);
+  color: var(--ink);
+}
+
+html .aurora-salta-chiede[hidden] { display: none !important; }
+
+html .aurora-salta-eco.attenzione {
+  border-color: color-mix(in srgb, var(--part) 55%, var(--line-soft));
+  color: var(--ink);
+}
+
+html .aurora-salta-no { justify-self: start; }
+
+html .aurora-salta-no[hidden] { display: none !important; }
+
+html .aurora-salta-campo[hidden] { display: none !important; }
