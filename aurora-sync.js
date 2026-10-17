@@ -257,10 +257,11 @@
         '</div>' +
         '<h2>Il tuo piano, su tutti i dispositivi</h2>' +
         '<p class="aurora-foglio-stato"></p>' +
+        /* Una frase sola, in un nodo solo: dentro ci sono le <b> di prima, ma
+           tradurre un pezzo alla volta in tedesco metterebbe il verbo in mezzo
+           alla riga. Così la frase intera è la chiave del dizionario. */
         '<p class="aurora-foglio-spiega">' +
-          'Le letture fatte su un dispositivo si <b>uniscono</b> a quelle fatte sull’altro: ' +
-          'niente si perde. Per questo, se cancelli una lettura per sbaglio, al prossimo ' +
-          'scambio torna: usa «Questo dispositivo vince» per imporre quello che vedi qui.' +
+          'Le letture fatte su un dispositivo si uniscono a quelle fatte sull’altro: niente si perde. Per questo, se cancelli una lettura per sbaglio, al prossimo scambio torna: usa «Questo dispositivo vince» per imporre quello che vedi qui.' +
         '</p>' +
         '<div class="aurora-foglio-azioni"></div>' +
         '<button type="button" class="aurora-foglio-chiudi">Chiudi</button>' +

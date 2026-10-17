@@ -292,6 +292,24 @@
     "Leggo il tuo piano dal cloud…": "Reading your plan from the cloud…|Ich lese deinen Plan aus der Cloud…|Leyendo tu plan de la nube…",
     "Firebase non risponde": "Firebase is not answering|Firebase antwortet nicht|Firebase no responde",
     "Il telefono non ha permesso di preparare il file. Riprova dal browser.": "The phone did not allow the file to be prepared. Try again from the browser.|Das Telefon hat das Erstellen der Datei nicht erlaubt. Versuche es erneut im Browser.|El teléfono no ha permitido preparar el archivo. Inténtalo de nuevo desde el navegador.",
+    /* Gli stati della striscia e del pannello di accesso: cambiano da soli
+       mentre si sincronizza, e sono le prime frasi che si leggono proprio
+       quando si accende l'accesso. */
+    "Salvo…": "Saving…|Speichern…|Guardando…",
+    "Aggiornato dal cloud": "Updated from the cloud|Aus der Cloud aktualisiert|Actualizado desde la nube",
+    "Non riesco a salvare": "I cannot save|Ich kann nicht speichern|No puedo guardar",
+    "Non riesco a leggere": "I cannot read|Ich kann nicht lesen|No puedo leer",
+    "Nel cloud non c’è ancora niente": "There is nothing in the cloud yet|In der Cloud ist noch nichts|En la nube todavía no hay nada",
+    "Ti porto su Google…": "Taking you to Google…|Ich bringe dich zu Google…|Te llevo a Google…",
+    "Accesso non riuscito": "Sign-in failed|Anmeldung fehlgeschlagen|No se pudo iniciar sesión",
+    "I due piani sono diversi: scegli tu": "The two plans are different: you choose|Die beiden Pläne sind verschieden: du entscheidest|Los dos planes son distintos: eliges tú",
+    "Ho trovato letture fatte altrove: aggiorno la pagina": "I found readings made elsewhere: reloading the page|Ich habe anderswo gemachte Lesungen gefunden: die Seite wird neu geladen|He encontrado lecturas hechas en otro sitio: recargo la página",
+    "Un altro dispositivo ha letto: aggiorno la pagina": "Another device has read: reloading the page|Ein anderes Gerät hat gelesen: die Seite wird neu geladen|Otro dispositivo ha leído: recargo la página",
+    "Prendo il piano dal cloud: aggiorno la pagina": "Taking the plan from the cloud: reloading the page|Ich hole den Plan aus der Cloud: die Seite wird neu geladen|Tomo el plan de la nube: recargo la página",
+    "Prova: leggo il finto cloud…": "Test: reading the pretend cloud…|Test: ich lese die Schein-Cloud…|Prueba: leo la nube ficticia…",
+    "Il tuo piano, su tutti i dispositivi": "Your plan, on all your devices|Dein Plan, auf allen deinen Geräten|Tu plan, en todos tus dispositivos",
+    "Account e sincronizzazione": "Account and synchronisation|Konto und Synchronisierung|Cuenta y sincronización",
+    "Le letture fatte su un dispositivo si uniscono a quelle fatte sull’altro: niente si perde. Per questo, se cancelli una lettura per sbaglio, al prossimo scambio torna: usa «Questo dispositivo vince» per imporre quello che vedi qui.": "Readings made on one device are joined with those made on the other: nothing is lost. That is why a reading you delete by mistake comes back at the next exchange: use “This device wins” to enforce what you see here.|Die auf einem Gerät gelesenen Abschnitte werden mit denen des anderen zusammengeführt: nichts geht verloren. Deshalb kommt eine versehentlich gelöschte Lesung beim nächsten Austausch zurück: nutze „Dieses Gerät gewinnt“, um das durchzusetzen, was du hier siehst.|Las lecturas hechas en un dispositivo se unen a las hechas en el otro: no se pierde nada. Por eso, una lectura que borres por error vuelve en el próximo intercambio: usa «Gana este dispositivo» para imponer lo que ves aquí.",
 
     /* --- fuori dal corpo: titolo della scheda e descrizione delle pagine --- */
     "Introduzione e FAQ · Dall'Aurora al Tramonto": "Introduction and FAQ · From Dawn to Sunset|Einführung und FAQ · Von der Morgendämmerung zum Sonnenuntergang|Introducción y preguntas frecuentes · De la Aurora al Atardecer",
