@@ -499,7 +499,7 @@
   var GIORNI = [
     ["M", "T", "W", "T", "F", "S", "S"],
     ["M", "D", "M", "D", "F", "S", "S"],
-    ["L", "M", "X", "J", "V", "S", "S"]
+    ["L", "M", "X", "J", "V", "S", "D"]
   ];
 
   /* I mesi, per le date che l'app scrive in italiano ("7 gennaio 2028") */
