@@ -85,6 +85,28 @@
     return Number(p[2]) + ' ' + MESI[Number(p[1]) - 1] + ' ' + p[0];
   }
 
+  /* ---------------------------------------------------- la pagina, letta vera ---
+     Da quando l'interfaccia si traduce, il testo disegnato può essere in
+     inglese o tedesco; i dati dell'app invece sono italiani e tali restano.
+     Qui si legge l'originale: «Genesi 1» anche quando sullo schermo c'è
+     «Genesis 1». Così i conti dei giri e delle riletture non cambiano quando
+     si cambia lingua. Nessuna scrittura: si legge e basta. */
+  function originale(el, nome) {
+    try {
+      var L = window.AuroraLingua;
+      if (L && L.attributo) return L.attributo(el, nome) || '';
+    } catch (e) {}
+    return (el && el.getAttribute ? el.getAttribute(nome) : '') || '';
+  }
+
+  function italianoNodo(nodo) {
+    try {
+      var L = window.AuroraLingua;
+      if (L && L.italiano) return L.italiano(nodo) || '';
+    } catch (e) {}
+    return (nodo && nodo.textContent) || '';
+  }
+
   /* --------------------------------------------------- lo stato dell'app, letto */
 
   /* I pallini: l'app ha già calcolato tutto (f = capitolo intero letto,
@@ -94,7 +116,7 @@
     var out = { letti: {}, parziali: {}, capitoli: {} };
     var celle = document.querySelectorAll('.ch[aria-label]');
     for (var i = 0; i < celle.length; i++) {
-      var et = celle[i].getAttribute('aria-label') || '';
+      var et = originale(celle[i], 'aria-label');
       var g = et.match(/^(.+?) (\d+)$/);
       if (!g) continue;
       var libro = g[1];
@@ -228,7 +250,7 @@
     var celle = document.querySelectorAll('.ch[aria-label]');
     for (var i = 0; i < celle.length; i++) {
       var b = celle[i];
-      var et = b.getAttribute('aria-label') || '';
+      var et = originale(b, 'aria-label');
       var nelGiro = !!giro[et];
       if (nelGiro !== b.classList.contains('aurora-giro')) b.classList.toggle('aurora-giro', nelGiro);
       var s = c.letture[et];
@@ -253,7 +275,7 @@
       var bh = testate[k];
       var suo = bh.querySelector('b');
       if (!suo) continue;
-      var nome = (suo.textContent || '').split('·')[0].trim();
+      var nome = italianoNodo(suo).split('·')[0].trim();
       var r = rr[nome];
       var libroEl = (bh.closest ? bh.closest('.book') : bh.parentNode) || bh.parentNode;
       var mio = libroEl ? libroEl.querySelector('.aurora-giro-riga') : null;

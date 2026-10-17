@@ -102,9 +102,27 @@
     for (var i = 0; i < nodi.length; i++) {
       var c = nodi[i].querySelector('input.chk');
       if (!c) continue;
-      var etichetta = c.getAttribute('aria-label') || '';
-      var m = etichetta.match(/Segna\s+(.+?)\s+come\s+letto/i);
-      var nome = m ? m[1] : '';
+      /* Il nome del momento si legge dal primo nodo di testo dentro `.lab`:
+         e' quello che l'app disegna, gia' nella lingua scelta; la sua
+         posizione non cambia con la lingua, la traduzione dell'aria-label
+         invece si' (e in tedesco non somiglia all'italiano). */
+      var nome = '';
+      var lab = nodi[i].querySelector('.lab');
+      if (lab) {
+        for (var k = 0; k < lab.childNodes.length; k++) {
+          var nodo = lab.childNodes[k];
+          if (nodo.nodeType === 3) {
+            var t = (nodo.nodeValue || '').trim();
+            if (t) { nome = t; break; }
+          }
+        }
+      }
+      if (!nome) {
+        var etichetta = c.getAttribute('aria-label') || '';
+        var m = etichetta.match(/Segna\s+(.+?)\s+come\s+letto/i) ||
+                etichetta.match(/Mark\s+(.+?)\s+as\s+read/i);
+        nome = m ? m[1] : '';
+      }
       if (!nome) {
         var piccolo = nodi[i].querySelector('small');
         nome = piccolo ? (piccolo.textContent || '').trim() : '';
@@ -120,7 +138,9 @@
     var cards = document.querySelectorAll('main > .card');
     for (var i = 0; i < cards.length; i++) {
       var t = cards[i].querySelector('h2');
-      if (!t || !/Ritmo del piano/.test(t.textContent || '')) continue;
+      /* il titolo della card cambia con la lingua («Plan pace», «Lesetempo»,
+         «Ritmo del plan»): riconoscerlo solo in italiano la faceva sparire */
+      if (!t || !/Ritmo del piano|Plan pace|Lesetempo|Ritmo del plan/.test(t.textContent || '')) continue;
       var nomi = [];
       var b = cards[i].querySelectorAll('b');
       for (var j = 0; j < b.length; j++) {

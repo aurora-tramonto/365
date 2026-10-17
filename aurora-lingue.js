@@ -253,6 +253,15 @@
     "L’app segue la lingua del telefono. Scegliendone un’altra vale solo per questa app: i titoli dei capitoli restano in italiano.": "The app follows your phone’s language. Another one applies to this app only: chapter titles stay in Italian.|Die App folgt der Sprache des Telefons. Eine andere gilt nur für diese App: die Kapiteltitel bleiben italienisch.|La app sigue el idioma del teléfono. Otro idioma vale solo para esta app: los títulos de los capítulos siguen en italiano.",
     "Italiano": "Italiano|Italiano|Italiano",
 
+    /* ------------------------------------------ il tipo di piano (Impostazioni) */
+    "Tipo di piano": "Type of plan|Art des Plans|Tipo de plan",
+    "Generato dall’app": "Made by the app|Von der App erstellt|Generado por la app",
+    "Piano originale · 4 anni": "Original plan · 4 years|Originalplan · 4 Jahre|Plan original · 4 años",
+    "Il piano scritto da Marco Giraldi: 1460 giorni, Aurora e Tramonto, con la descrizione di ogni lettura.": "The plan written by Marco Giraldi: 1460 days, Dawn and Sunset, with a description of every reading.|Der Plan von Marco Giraldi: 1460 Tage, Morgendämmerung und Sonnenuntergang, mit einer Beschreibung jeder Lesung.|El plan escrito por Marco Giraldi: 1460 días, Aurora y Atardecer, con la descripción de cada lectura.",
+    "Applicare il nuovo piano? Le letture già segnate restano lette; le posizioni di oggi cambiano. Potrai annullare subito dopo.": "Apply the new plan? Readings already ticked stay read; today’s positions change. You can undo straight away.|Neuen Plan anwenden? Bereits markierte Lesungen bleiben gelesen; die heutigen Positionen ändern sich. Du kannst es sofort rückgängig machen.|¿Aplicar el nuevo plan? Las lecturas ya marcadas siguen leídas; las posiciones de hoy cambian. Podrás deshacerlo enseguida.",
+    "Sì, applica": "Yes, apply|Ja, anwenden|Sí, aplicar",
+    "Nuovo piano applicato.": "New plan applied.|Neuer Plan angewendet.|Nuevo plan aplicado.",
+
     /* ------------------------------------------- dove vive il piano (aurora-dati) */
     "Dove vive il tuo piano": "Where your plan lives|Wo dein Plan lebt|Dónde vive tu plan",
     "Non hai un accesso, e va benissimo: tutto funziona lo stesso. Ma il piano è salvato solo dentro questo browser, su questo telefono: non esiste da nessun'altra parte.": "You have no account, and that is fine: everything works anyway. But the plan is saved only inside this browser, on this phone: it does not exist anywhere else.|Du hast kein Konto, und das ist in Ordnung: alles funktioniert trotzdem. Der Plan liegt aber nur in diesem Browser auf diesem Telefon: er existiert nirgendwo sonst.|No tienes cuenta, y está bien: todo funciona igual. Pero el plan solo está guardado dentro de este navegador, en este teléfono: no existe en ningún otro sitio.",
@@ -509,6 +518,85 @@
     dicembre: ["December", "Dezember", "diciembre"]
   };
 
+  /* I 66 NOMI DEI LIBRI. Sono i nomi come li scrive l'app nei riferimenti
+     («Genesi 1», «Salmo 119:1-36», «1 Samuele 3»): la chiave è quello
+     italiano, e la traduzione è il solo nome del libro — i numeri li mette
+     l'app e restano dove sono. Il motore li riconosce in due posti: quando un
+     nodo *è* un riferimento, e dentro i pezzi catturati da un modello
+     («Salterai 185 letture (Esodo 29 → Isaia 17-21)»).
+
+     Niente qui tocca il piano salvato, il backup o il PDF: la traduzione si
+     applica solo al testo disegnato, quindi i riferimenti nelle date, nei
+     documenti e nei codici restano quelli italiani che l'app conosce. */
+  var LIBRI = {
+    "Genesi": "Genesis|1. Mose|Génesis",
+    "Esodo": "Exodus|2. Mose|Éxodo",
+    "Levitico": "Leviticus|3. Mose|Levítico",
+    "Numeri": "Numbers|4. Mose|Números",
+    "Deuteronomio": "Deuteronomy|5. Mose|Deuteronomio",
+    "Giosuè": "Joshua|Josua|Josué",
+    "Giudici": "Judges|Richter|Jueces",
+    "Rut": "Ruth|Rut|Rut",
+    "1 Samuele": "1 Samuel|1. Samuel|1 Samuel",
+    "2 Samuele": "2 Samuel|2. Samuel|2 Samuel",
+    "1 Re": "1 Kings|1. Könige|1 Reyes",
+    "2 Re": "2 Kings|2. Könige|2 Reyes",
+    "1 Cronache": "1 Chronicles|1. Chronik|1 Crónicas",
+    "2 Cronache": "2 Chronicles|2. Chronik|2 Crónicas",
+    "Esdra": "Ezra|Esra|Esdras",
+    "Neemia": "Nehemiah|Nehemia|Nehemías",
+    "Ester": "Esther|Ester|Ester",
+    "Giobbe": "Job|Hiob|Job",
+    "Salmo": "Psalm|Psalm|Salmo",
+    "Proverbi": "Proverbs|Sprüche|Proverbios",
+    "Ecclesiaste": "Ecclesiastes|Prediger|Eclesiastés",
+    "Cantico": "Song of Songs|Hoheslied|Cantar de los Cantares",
+    "Isaia": "Isaiah|Jesaja|Isaías",
+    "Geremia": "Jeremiah|Jeremia|Jeremías",
+    "Lamentazioni": "Lamentations|Klagelieder|Lamentaciones",
+    "Ezechiele": "Ezekiel|Ezechiel|Ezequiel",
+    "Daniele": "Daniel|Daniel|Daniel",
+    "Osea": "Hosea|Hosea|Oseas",
+    "Gioele": "Joel|Joel|Joel",
+    "Amos": "Amos|Amos|Amós",
+    "Abdia": "Obadiah|Obadja|Abdías",
+    "Giona": "Jonah|Jona|Jonás",
+    "Michea": "Micah|Micha|Miqueas",
+    "Naum": "Nahum|Nahum|Nahúm",
+    "Abacuc": "Habakkuk|Habakuk|Habacuc",
+    "Sofonia": "Zephaniah|Zefanja|Sofonías",
+    "Aggeo": "Haggai|Haggai|Hageo",
+    "Zaccaria": "Zechariah|Sacharja|Zacarías",
+    "Malachia": "Malachi|Maleachi|Malaquías",
+    "Matteo": "Matthew|Matthäus|Mateo",
+    "Marco": "Mark|Markus|Marcos",
+    "Luca": "Luke|Lukas|Lucas",
+    "Giovanni": "John|Johannes|Juan",
+    "Atti": "Acts|Apostelgeschichte|Hechos",
+    "Romani": "Romans|Römer|Romanos",
+    "1 Corinzi": "1 Corinthians|1. Korinther|1 Corintios",
+    "2 Corinzi": "2 Corinthians|2. Korinther|2 Corintios",
+    "Galati": "Galatians|Galater|Gálatas",
+    "Efesini": "Ephesians|Epheser|Efesios",
+    "Filippesi": "Philippians|Philipper|Filipenses",
+    "Colossesi": "Colossians|Kolosser|Colosenses",
+    "1 Tessalonicesi": "1 Thessalonians|1. Thessalonicher|1 Tesalonicenses",
+    "2 Tessalonicesi": "2 Thessalonians|2. Thessalonicher|2 Tesalonicenses",
+    "1 Timoteo": "1 Timothy|1. Timotheus|1 Timoteo",
+    "2 Timoteo": "2 Timothy|2. Timotheus|2 Timoteo",
+    "Tito": "Titus|Titus|Tito",
+    "Filemone": "Philemon|Philemon|Filemón",
+    "Ebrei": "Hebrews|Hebräer|Hebreos",
+    "Giacomo": "James|Jakobus|Santiago",
+    "1 Pietro": "1 Peter|1. Petrus|1 Pedro",
+    "2 Pietro": "2 Peter|2. Petrus|2 Pedro",
+    "1 Giovanni": "1 John|1. Johannes|1 Juan",
+    "2 Giovanni": "2 John|2. Johannes|2 Juan",
+    "3 Giovanni": "3 John|3. Johannes|3 Juan",
+    "Giuda": "Jude|Judas|Judas",
+    "Apocalisse": "Revelation|Offenbarung|Apocalipsis"
+  };
+
   /* i nomi dei momenti in tutte e quattro le lingue: servono per riconoscere lo
      stesso momento quando la lingua cambia (una chiave salvata ieri non deve
      perdersi oggi) */
@@ -576,6 +664,7 @@
     righe: RIGHE,
     giorni: GIORNI,
     mesi: MESI,
-    momenti: MOMENTI
+    momenti: MOMENTI,
+    libri: LIBRI
   };
 })();

@@ -59,6 +59,31 @@
     return testo;
   }
 
+  /* ------------------------------------------------------------------ i nomi ---
+     Da quando l'app traduce i nomi dei libri, chi legge «Isaiah 22» o «Jesaja 22»
+     deve essere capito come chi scrive «Isaia 22»: qui si impara la forma della
+     lingua scelta e la si riporta al nome italiano. La scrittura verso l'app
+     resta italiana — i riferimenti del piano sono quelli, ed e' quello che
+     l'app salva nel piano, nel backup e nella sincronizzazione. */
+  function indiceLingua() {
+    try {
+      var c = window.AuroraLingua && window.AuroraLingua.codice ? window.AuroraLingua.codice() : 'it';
+      return c === 'it' ? -1 : ['en', 'de', 'es'].indexOf(c);
+    } catch (e) { return -1; }
+  }
+
+  function nomeLibro(b) {
+    var i = indiceLingua();
+    var L = window.AURORA_LINGUE;
+    if (i < 0 || !L || !L.libri || !L.libri[b]) return b;
+    return L.libri[b].split('|')[i];
+  }
+
+  /* «1. Samuel» e «1 Samuel» sono lo stesso libro: punti e spazi non contano */
+  function compatto(s) {
+    return senzaAccenti(s).replace(/[\s.]/g, '');
+  }
+
   /* ------------------------------------------------------------- lo stato vero */
   var cacheGrezzo = null;
   var cacheStato = null;
@@ -78,17 +103,28 @@
   }
 
   /* nomi compattati («1 Samuele» → «1samuele»), dal più lungo: così «1 Giovanni»
-     non viene letto come «Giovanni» */
-  var NOMI = ORDINE.map(function (b) {
-    return { b: b, n: senzaAccenti(b).replace(/\s+/g, '') };
-  }).sort(function (x, y) { return y.n.length - x.n.length; });
+     non viene letto come «Giovanni». Di ogni libro si impara anche la forma
+     tradotta, se una lingua e' scelta. */
+  var NOMI = [];
+
+  function imparaNomi() {
+    NOMI = [];
+    ORDINE.forEach(function (b) {
+      NOMI.push({ b: b, n: compatto(b) });
+      var tradotto = nomeLibro(b);
+      if (tradotto !== b) NOMI.push({ b: b, n: compatto(tradotto) });
+    });
+    NOMI.sort(function (x, y) { return y.n.length - x.n.length; });
+  }
+
+  imparaNomi();
 
   /* l'ordine della Bibbia, per l'elenco da toccare */
   var NOMI_ORDINE = ORDINE.slice();
 
-  function trovaLibro(compatto) {
+  function trovaLibro(piatto) {
     for (var i = 0; i < NOMI.length; i++) {
-      if (compatto.indexOf(NOMI[i].n) === 0) return NOMI[i];
+      if (piatto.indexOf(NOMI[i].n) === 0) return NOMI[i];
     }
     return null;
   }
@@ -103,12 +139,12 @@
       if (!ALIAS.hasOwnProperty(k)) continue;
       if (norm === k || norm.indexOf(k + ' ') === 0) { t = ALIAS[k] + t.slice(k.length); break; }
     }
-    var compatto = senzaAccenti(t).replace(/\s+/g, '');
+    var piatto = compatto(t);
 
-    var trovato = trovaLibro(compatto);
+    var trovato = trovaLibro(piatto);
     if (!trovato) return { ignoto: true };
 
-    var resto = compatto.slice(trovato.n.length);
+    var resto = piatto.slice(trovato.n.length);
     var b = trovato.b;
     var quanti = CAPITOLI[b].length;
 
@@ -428,9 +464,11 @@
     griglia.textContent = '';
 
     if (aperto === 'libro') {
-      var filtro = senzaAccenti(box.__filtro).replace(/\s+/g, '');
+      var filtro = compatto(box.__filtro);
       NOMI_ORDINE.forEach(function (nome) {
-        if (filtro && senzaAccenti(nome).replace(/\s+/g, '').indexOf(filtro) < 0) return;
+        /* si cerca in italiano e nella lingua scelta: «iesaja» e «isaia»
+           trovano lo stesso libro */
+        if (filtro && compatto(nome).indexOf(filtro) < 0 && compatto(nomeLibro(nome)).indexOf(filtro) < 0) return;
         griglia.appendChild(bottoneGriglia(nome, sel.b === nome, false, function () {
           scegli(box, 'b', nome);
         }));
@@ -844,8 +882,10 @@
     document.addEventListener('click', function () { fraPoco(160); }, true);
     document.addEventListener('change', function () { fraPoco(160); }, true);
 
-    /* la lingua cambia: le nostre frasi vanno riscritte */
-    document.addEventListener('aurora-lingua', function () { sistema(true); });
+    /* la lingua cambia: le nostre frasi vanno riscritte, e i nomi dei libri
+       vanno imparati di nuovo nella lingua nuova (altrimenti chi scrive
+       «Jesaja 22» non verrebbe capito) */
+    document.addEventListener('aurora-lingua', function () { imparaNomi(); sistema(true); });
 
     /* il piano cambia anche senza toccare il DOM (localStorage): ogni tanto */
     setInterval(function () { if (!document.hidden) sistema(false); }, 1500);

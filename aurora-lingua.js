@@ -32,6 +32,16 @@
 
   var DIZ = L.diz;
 
+  /* I titoli delle letture stanno in un file loro (aurora-titoli.js): sono
+     migliaia e crescono a blocchi, e non devono gonfiare il dizionario
+     dell'interfaccia. Qui si uniscono a quello che c'e' gia'; se il file non
+     c'e' (la pagina Introduzione non lo carica) non succede niente. */
+  if (window.AURORA_TITOLI) {
+    for (var t in window.AURORA_TITOLI) {
+      if (!DIZ[t]) DIZ[t] = window.AURORA_TITOLI[t];
+    }
+  }
+
   var MOD = [];
   for (var i = 0; i < L.mod.length; i++) {
     MOD.push({ re: new RegExp(L.mod[i][0]), v: L.mod[i][1].split('|') });
@@ -146,15 +156,49 @@
 
   /* ------------------------------------------------------------------ tradurre */
 
+  /* ------------------------------------------------------- i riferimenti biblici ---
+     «Genesi 1», «Salmo 119:1-36», «1 Samuele 3»: il nome del libro si traduce,
+     i numeri restano. Si riconosce solo un riferimento INTERO (nome più
+     numeri, nient'altro), così una frase che contiene «Giovanni» non viene
+     toccata: quella la traducono il dizionario o i blocchi interi. */
+
+  var RE_LIBRO = null;
+
+  function reLibro() {
+    if (RE_LIBRO) return RE_LIBRO;
+    var nomi = Object.keys(L.libri || {}).sort(function (a, b) { return b.length - a.length; });
+    var esc = function (s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); };
+    RE_LIBRO = new RegExp('^(' + nomi.map(esc).join('|') + ')([\\s0-9:\\-\\u2013,\\.]*)$');
+    return RE_LIBRO;
+  }
+
+  /* null se non è un riferimento: chi chiama decide cosa fare */
+  function riferimento(testo) {
+    if (!L.libri) return null;
+    var m = String(testo).match(reLibro());
+    if (!m) return null;
+    var voce = L.libri[m[1]];
+    if (!voce) return null;
+    var coda = m[2] || '';
+    /* in tedesco il capitolo si separa con la virgola: «Psalm 139,9-10»,
+       come nelle citazioni della pagina Introduzione */
+    if (indice() === 1) coda = coda.replace(/:/g, ',');
+    return voce.split('|')[indice()] + coda;
+  }
+
   /* Un pezzo preso dalla frase italiana può essere a sua volta una parola da
      tradurre: «Conferma Tramonto — Adesso è il momento di Tramonto.» porta
-     dentro il nome del momento, che in inglese è «Sunset». Se la parola è nel
-     dizionario si traduce, altrimenti resta com'è (un titolo di capitolo, un
-     numero, il nome di un libro). */
+     dentro il nome del momento, che in inglese è «Sunset», e «Salterai 185
+     letture (Esodo 29 → Isaia 17-21)» porta dentro due riferimenti. Se il
+     pezzo è nel dizionario si traduce, se è un riferimento si traduce il nome
+     del libro, altrimenti resta com'è (un titolo, un numero). */
   function gruppo(v) {
     if (v == null) return '';
-    var d = DIZ[senzaSpazi(v)];
-    return d ? d.split('|')[indice()] : v;
+    var t = senzaSpazi(v);
+    var d = DIZ[t];
+    if (d) return d.split('|')[indice()];
+    var rif = riferimento(t);
+    return rif === null ? v : rif;
   }
 
   function sostituisci(modello, gruppi) {
@@ -181,6 +225,9 @@
       var m = t.match(MOD[i].re);
       if (m) return sostituisci(MOD[i].v[ind], m);
     }
+
+    var rif = riferimento(t);
+    if (rif !== null) return rif;
 
     return dataItalian(t);
   }
@@ -235,6 +282,33 @@
     if (nuovo === null) return;
     stato.out = nuovo;
     if (ora !== nuovo) scrivi(function () { el.setAttribute(nome, nuovo); });
+  }
+
+  /* ------------------------------------------- leggere la pagina al contrario ---
+     I miei moduli leggono la pagina per confrontarla con i dati dell'app —
+     quelli sono italiani e restano italiani (il piano, i giri, i riferimenti,
+     il documento che va nel backup e nella sincronizzazione). Da quando anche
+     il testo disegnato può essere tradotto, leggere il testo così com'è non
+     basta: queste due funzioni restituiscono l'originale italiano di un nodo o
+     di un attributo, e se non l'abbiamo tradotto noi danno il testo di adesso.
+     Non scrivono niente: chi legge chiama, il DOM resta quello che si vede. */
+
+  function italianoDi(nodo) {
+    if (!nodo) return '';
+    if (nodo.nodeType === 3) {
+      var s = nodo.__aurora;
+      return s && s.it != null ? s.it : nodo.nodeValue;
+    }
+    if (nodo.nodeType !== 1) return '';
+    var fuori = '';
+    for (var f = nodo.firstChild; f; f = f.nextSibling) fuori += italianoDi(f);
+    return fuori;
+  }
+
+  function attributoItaliano(el, nome) {
+    if (!el || !el.getAttribute) return null;
+    var m = el.__auroraAttr && el.__auroraAttr[nome];
+    return m && m.it != null ? m.it : el.getAttribute(nome);
   }
 
   /* le scritture nostre non devono far ripartire l'osservatore */
@@ -612,6 +686,8 @@
     },
     traduci: traduciTesto,
     canonico: nomeCanonico,
+    italiano: italianoDi,
+    attributo: attributoItaliano,
     tutto: tutto
   };
 })();

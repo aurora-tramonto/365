@@ -26,6 +26,15 @@
   var ID = 'aurora-inizi';
   var ATTESA = 120;                 // il ridisegno dell'app non è istantaneo
 
+  /* il testo italiano di un nodo, anche se sullo schermo è tradotto */
+  function testoItaliano(nodo) {
+    try {
+      var L = window.AuroraLingua;
+      if (L && L.italiano) return L.italiano(nodo) || '';
+    } catch (e) {}
+    return (nodo && nodo.textContent) || '';
+  }
+
   /* ------------------------------------------------------------- leggere la riga */
 
   /* Il menù dell'app è dentro un <label class="sp">: nome del momento, menù, e
@@ -40,7 +49,10 @@
       if (!sel) continue;
       var nome = l.querySelector('span');
       var piccolo = l.querySelector('small');
-      var testo = piccolo ? (piccolo.textContent || '').replace(/\s+/g, ' ').trim() : '';
+      /* La riga «inizia da: Matteo 1» può essere tradotta sullo schermo
+         («starts at: Matthew 1»): qui serve l'originale, perché va confrontata
+         con il valore dei menù e con i dati dell'app, che sono italiani. */
+      var testo = piccolo ? testoItaliano(piccolo).replace(/\s+/g, ' ').trim() : '';
       /* Il libro che l'app userà davvero: la riga è «…: Matteo 1» in tutte e
          quattro le lingue, quindi si prende quello che sta dopo i due punti. */
       var vero = null;
