@@ -1661,3 +1661,140 @@ html .aurora-salta-no { justify-self: start; }
 html .aurora-salta-no[hidden] { display: none !important; }
 
 html .aurora-salta-campo[hidden] { display: none !important; }
+/* ============================================================================
+   AURORA ACCOUNT — il tasto in alto e il pannello dei dati della persona
+   ============================================================================
+   `aurora-con-tasto` su <html> e' l'interruttore: la mette il modulo soltanto
+   quando il tasto esiste davvero (cioe' quando l'accesso e' configurato, o
+   quando lo si chiede con ?aurora-account=1). Senza quella classe, qui dentro
+   non si applica niente e la pagina resta com'era. */
+
+html .aurora-top-tasto { display: none; }
+
+html.aurora-con-tasto .aurora-top-tasto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 11px 3px 3px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--soft);
+  font: 600 12.5px var(--body);
+  cursor: pointer;
+  transition: border-color var(--t-mid) var(--ease), color var(--t-mid) var(--ease);
+}
+
+html.aurora-con-tasto .aurora-top-tasto:hover { border-color: var(--ink); color: var(--ink); }
+html.aurora-con-tasto .aurora-top-tasto:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html.aurora-con-tasto .aurora-top-tasto[data-accesso="si"] { color: var(--ink); }
+
+/* la sfera: la foto se c'e', altrimenti l'iniziale del nome */
+html .aurora-top-sfera,
+html .aurora-acc-sfera {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background-color: color-mix(in srgb, var(--ink) 10%, var(--bg));
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border: 1px solid var(--line-soft);
+  color: var(--soft);
+  font: 600 14px var(--body);
+  text-transform: uppercase;
+}
+
+html .aurora-acc-sfera { width: 56px; height: 56px; font-size: 22px; }
+
+/* il tasto non deve rubare spazio al marchio su un telefono stretto */
+@media (max-width: 419px) {
+  html.aurora-con-tasto .aurora-top-testo { display: none; }
+  html.aurora-con-tasto .aurora-top-tasto { padding: 3px; }
+}
+
+/* --- il pannello: i campi ------------------------------------------------- */
+
+html .aurora-acc-foto {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+html .aurora-acc-foto-azioni {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+html .aurora-acc-foto-azioni .aurora-foglio-tasto {
+  display: block;
+  width: 100%;
+  text-align: center;
+  min-height: 38px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+}
+
+html .aurora-acc-riga {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0 0 14px;
+}
+
+html .aurora-acc-riga label {
+  font: 600 12px var(--body);
+  color: var(--soft);
+}
+
+html .aurora-acc-riga input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--ink);
+  font: 15px var(--body);
+}
+
+html .aurora-acc-riga input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+html .aurora-acc-email {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  color: var(--soft);
+  overflow-wrap: anywhere;
+}
+
+html .aurora-acc-email[hidden] { display: none; }
+
+html .aurora-acc-salvato {
+  margin: 0 0 12px;
+  min-height: 16px;
+  font: 500 12.5px var(--body);
+  color: var(--ok);
+}
+
+html .aurora-acc-salvato:empty { min-height: 0; margin: 0; }
+
+/* l'ingresso per la foto: invisibile ma non `display:none`, perche' e' il
+   <label> a essere disegnato come un pulsante e a portarci il fuoco */
+html .aurora-nascosto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

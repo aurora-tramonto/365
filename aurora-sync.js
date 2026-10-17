@@ -210,6 +210,14 @@
     stato = nuovoStato;
     nota = nuovaNota || '';
     dipingi();
+    avvisa();
+  }
+
+  /* Chi aspetta di sapere se c'è un accesso (il pannello dell'account): viene
+     chiamato a ogni cambio di stato, con l'utente o con null. */
+  var spie = [];
+  function avvisa() {
+    for (var i = 0; i < spie.length; i++) { try { spie[i](utente); } catch (e) {} }
   }
 
   /* ------------------------------------------------------------------ pannello */
@@ -619,6 +627,46 @@
     }
   }
 
+  /* ------------------------------------------------------------------ profilo ---
+     I dati della persona: foto, nome, data di nascita. Stanno in un documento
+     loro — `utenti/<uid>/profilo/dati` — separato dal piano, per una ragione
+     precisa: la fusione fra due dispositivi confronta il documento del piano, e
+     se il profilo stesse lì dentro ogni cambio di nome diventerebbe una fusione
+     da fare. Così il piano resta una cosa sola, e il profilo un'altra. */
+
+  function rifProfilo(api) {
+    return api.D.doc(api.db, 'utenti', api.auth.currentUser.uid, 'profilo', 'dati');
+  }
+
+  var CHIAVE_PROFILO_FINTO = 'aurora_prova_profilo';
+
+  async function leggiProfilo() {
+    try {
+      if (PROVA) { return JSON.parse(leggi(CHIAVE_PROFILO_FINTO) || 'null'); }
+      if (!utente) return null;
+      var api = await caricaFirebase();
+      var s = await api.D.getDoc(rifProfilo(api));
+      return s.exists() ? s.data() : null;
+    } catch (e) { log('profilo: lettura', e); return null; }
+  }
+
+  async function scriviProfilo(p) {
+    try {
+      if (PROVA) { scrivi(CHIAVE_PROFILO_FINTO, JSON.stringify(p)); return true; }
+      if (!utente) return false;
+      var api = await caricaFirebase();
+      await api.D.setDoc(rifProfilo(api), p, { merge: true });
+      return true;
+    } catch (e) { log('profilo: scrittura', e); return false; }
+  }
+
+  function osservaProfilo(cb) {
+    if (PROVA || !utente) return;
+    caricaFirebase().then(function (api) {
+      api.D.onSnapshot(rifProfilo(api), function (s) { cb(s.exists() ? s.data() : null); });
+    }).catch(function (e) { log('profilo: osservazione', e); });
+  }
+
   /* sportello per il collaudo: così le prove girano sul file vero */
   window.AuroraSync = {
     unisci: unisci,
@@ -627,6 +675,12 @@
     accedi: accedi,
     esci: esci,
     spingi: spingi,
+    /* --- per il pannello dell'account --- */
+    configurato: !!CFG,
+    prova: PROVA,
+    utente: function () { return utente; },
+    osservatore: function (cb) { spie.push(cb); try { cb(utente); } catch (e) {} },
+    profilo: { leggi: leggiProfilo, scrivi: scriviProfilo, osserva: osservaProfilo },
     perIlCollaudo: { scrivi: scrivi, leggi: leggi, remotoFinto: remotoFinto, impacchetta: impacchetta }
   };
 

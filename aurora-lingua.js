@@ -49,6 +49,23 @@
 
   var CODICI = ['en', 'de', 'es'];
 
+  /* ------------------------------------------------------- quello che non si tocca ---
+     Alcune cose NON vanno tradotte, mai: il nome di una persona, per esempio.
+     È un difetto trovato provando il pannello dell'account: nel dizionario
+     «Marco» c'è — è il Vangelo di Marco, e in tedesco diventa «Markus» — e
+     quindi un lettore che si chiama Marco si vedeva ribattezzare dall'app.
+     Chi scrive un pezzo dell'interfaccia che contiene dati della persona lo
+     segna con `translate="no"` (o `data-aurora-fisso`), e il motore passa
+     oltre. Vale anche per l'attributo: il nome di un pulsante, per esempio. */
+  function intoccabile(nodo) {
+    var el = nodo.nodeType === 1 ? nodo : nodo.parentElement;
+    while (el && el.getAttribute) {
+      if (el.getAttribute('translate') === 'no' || el.hasAttribute('data-aurora-fisso')) return true;
+      el = el.parentElement;
+    }
+    return false;
+  }
+
   var LINGUE = [
     { v: 'auto', nome: 'Automatico' },
     { v: 'it', nome: 'Italiano' },
@@ -251,6 +268,7 @@
       return;
     }
     if (!stato.it || !stato.it.trim()) return;
+    if (intoccabile(nodo)) return;
 
     var nuovo = contesto(nodo);
     if (nuovo === null) nuovo = traduci(stato.it);
@@ -277,6 +295,7 @@
       return;
     }
     if (!stato.it || !stato.it.trim()) return;
+    if (intoccabile(el)) return;
 
     var nuovo = traduci(stato.it);
     if (nuovo === null) return;
