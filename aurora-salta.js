@@ -383,6 +383,9 @@
     fai.type = 'button';
     fai.className = 'btn pri full aurora-salta-fai';
     fai.textContent = T('Riprendi da qui');
+    /* la riga sopra il pulsante dice cosa succederà: il lettore di schermo
+       la legge insieme al pulsante, senza doverla cercare */
+    fai.setAttribute('aria-describedby', 'aurora-salta-eco-' + n);
 
     var no = document.createElement('button');
     no.type = 'button';
@@ -579,6 +582,24 @@
     if (visto >= 0) pos = visto;
     if (!refOra) refOra = piano[pos] || '';
 
+    /* Le frecce della riga hanno come nome «‹ precedente» e «successiva ›»:
+       il primo si sente «segno minore precedente», il secondo non dice cosa
+       muove. Qui prendono un nome che si capisce, senza cambiare il testo. */
+    if (riga) {
+      /* La casella dice «Segna Aurora come letto»: il momento, non la lettura.
+         Chi ascolta sente tre caselle identiche e non sa quale spuntare. */
+      var casella = riga.querySelector('input.chk');
+      if (casella) casella.setAttribute('aria-label', T('Segna ' + refOra + ' come letto'));
+
+      var frecce = riga.querySelectorAll('.nav button');
+      for (var fe = 0; fe < frecce.length; fe++) {
+        var freccia = frecce[fe];
+        var testoFreccia = (freccia.textContent || '');
+        if (testoFreccia.indexOf('\u203a') >= 0) freccia.setAttribute('aria-label', T('Lettura successiva'));
+        else if (testoFreccia.indexOf('\u2039') >= 0) freccia.setAttribute('aria-label', T('Lettura precedente'));
+      }
+    }
+
     /* etichette (possono cambiare lingua) */
     pezzi.domanda.textContent = T('Dove sei arrivato?');
     campo.placeholder = T('es. Isaia 22:15');
@@ -626,6 +647,7 @@
     disegnaLista(box, mappa);
 
     fai.disabled = true;
+    fai.removeAttribute('aria-disabled');
     fai.textContent = T('Riprendi da qui');
     pezzi.chiede.hidden = true;
     pezzi.chiede.textContent = '';
@@ -692,6 +714,10 @@
     if (dentro) {
       if (lettura.c1 !== lettura.c2) {
         fai.textContent = T('Sei già qui');
+        /* non spento, ma non disponibile: così il perché si può ascoltare */
+        fai.disabled = false;
+    fai.removeAttribute('aria-disabled');
+        fai.setAttribute('aria-disabled', 'true');
         eco.textContent = T('In questa lettura il segnaposto è uno solo: per fermarti a metà serve una lettura di un capitolo.');
         return;
       }
@@ -704,21 +730,34 @@
 
       if (!q.v1) {
         fai.textContent = T('Sei già qui');
+        /* non spento, ma non disponibile: così il perché si può ascoltare */
+        fai.disabled = false;
+    fai.removeAttribute('aria-disabled');
+        fai.setAttribute('aria-disabled', 'true');
         eco.textContent = T('Tocca il versetto dove ti sei fermato e segno la parte letta, riprendendo da quello dopo.');
         return;
       }
       if (q.v1 < da) {
         fai.textContent = T('Sei già qui');
+        /* non spento, ma non disponibile: così il perché si può ascoltare */
+        fai.disabled = false;
+    fai.removeAttribute('aria-disabled');
+        fai.setAttribute('aria-disabled', 'true');
         eco.textContent = T(q.b + ' ' + q.c1 + ':' + q.v1 + ' è prima di ' + q.b + ' ' + q.c1 + ':' + da + ': quel pezzo è già letto, non c’è niente da segnare.');
         return;
       }
       if (q.v1 >= a) {
         fai.textContent = T('Sei già qui');
+        /* non spento, ma non disponibile: così il perché si può ascoltare */
+        fai.disabled = false;
+    fai.removeAttribute('aria-disabled');
+        fai.setAttribute('aria-disabled', 'true');
         eco.textContent = T('Questo è l’ultimo versetto: qui non resta niente da riprendere. Se hai finito il capitolo, spunta la casella.');
         return;
       }
 
       fai.disabled = false;
+    fai.removeAttribute('aria-disabled');
       fai.textContent = T('Segna e riprendi');
       eco.className = 'aurora-salta-eco ok';
       eco.textContent = T('Segno ' + q.b + ' ' + q.c1 + ':' + da + '-' + q.v1 + ' come letto · riprendi da ' +
@@ -764,6 +803,7 @@
     }
 
     fai.disabled = false;
+    fai.removeAttribute('aria-disabled');
     if (!avanti) fai.textContent = T('Torna a ' + testo);
     else fai.textContent = T('Riprendi da qui');
     box.__azione = { tipo: 'salta', testo: testo, go: go, sv: sv, edit: edit };
@@ -824,12 +864,18 @@
   /* collega gli ascoltatori una volta sola, alla creazione */
   function collega(box, edit) {
     var campo = box.__pezzi.campo;
+    /* Mentre scrivi, la riga di anteprima cambia a ogni tasto. Per gli occhi
+       va bene; per un lettore di schermo è un fiume di frasi a metà («Non
+       conosco la I», «Non conosco la Is»). Lo stato si aggiorna subito, il
+       disegno aspetta che ti fermi un attimo. */
+    var attesaScrittura = null;
     campo.addEventListener('input', function () {
       box.__digitato = true;
       box.__mancaCapitolo = false;
       box.__aperto = null;
       box.__firma = '';
-      aggiorna(edit);
+      clearTimeout(attesaScrittura);
+      attesaScrittura = setTimeout(function () { aggiorna(edit); }, 420);
     });
     campo.addEventListener('keydown', function (e) {
       if (e.key === 'Enter' && !box.__pezzi.fai.disabled) { e.preventDefault(); esegui(box); }

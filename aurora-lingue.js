@@ -47,6 +47,10 @@
     "Modifica": "Edit|Bearbeiten|Editar",
     "‹ precedente": "‹ previous|‹ zurück|‹ anterior",
     "successiva ›": "next ›|weiter ›|siguiente ›",
+    /* le stesse frecce, dette come le sente un lettore di schermo: «‹» da
+       solo non dice cosa muove */
+    "Lettura precedente": "Previous reading|Vorherige Lesung|Lectura anterior",
+    "Lettura successiva": "Next reading|Nächste Lesung|Lectura siguiente",
     "Spunta quando hai letto, poi usa i pulsanti per cambiare lettura. Ogni momento del giorno va per conto suo. Fine prevista:": "Tick when you have read, then use the buttons to change reading. Each moment of the day goes its own way. Expected finish:|Abhaken, wenn du gelesen hast; mit den Tasten wechselst du die Lesung. Jeder Tageszeitpunkt zählt für sich. Voraussichtliches Ende:|Marca cuando hayas leído y usa los botones para cambiar de lectura. Cada momento del día va por su cuenta. Fin previsto:",
     "Cambia il ritmo": "Change the pace|Tempo ändern|Cambiar el ritmo",
     "Giornata completata": "Day completed|Tag abgeschlossen|Día completado",
