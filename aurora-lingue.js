@@ -325,6 +325,7 @@
     "Accedi": "Sign in|Anmelden|Iniciar sesión",
     "sei entrato": "signed in|angemeldet|con sesión",
     "Non hai ancora un accesso.": "You are not signed in yet.|Du bist noch nicht angemeldet.|Todavía no has iniciado sesión.",
+    "Accesso di prova: questo account è finto. Non è su Google e non salva niente fuori da questo browser.": "Test sign-in: this account is fake. It is not on Google and saves nothing outside this browser.|Testzugang: dieses Konto ist fiktiv. Es liegt nicht bei Google und speichert nichts außerhalb dieses Browsers.|Acceso de prueba: esta cuenta es ficticia. No está en Google y no guarda nada fuera de este navegador.",
     "Sei entrato come": "You are signed in as|Du bist angemeldet als|Has iniciado sesión como",
     "Scegli una foto": "Choose a photo|Ein Foto wählen|Elegir una foto",
     "Togli la foto": "Remove the photo|Foto entfernen|Quitar la foto",

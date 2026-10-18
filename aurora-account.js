@@ -135,6 +135,10 @@
     sfondo.innerHTML =
       '<div class="aurora-foglio" role="dialog" aria-modal="true" aria-labelledby="aurora-acc-titolo">' +
         '<h2 id="aurora-acc-titolo">Il tuo account</h2>' +
+        /* Solo con `?aurora-prova=1`: dice a chiare lettere che l'account è
+           finto. Senza, l'email «prova@esempio.it» sembrava un account vero
+           che non funzionava. */
+        '<p class="aurora-acc-prova" hidden></p>' +
         '<p class="aurora-foglio-stato"></p>' +
         '<p class="aurora-foglio-spiega"></p>' +
 
@@ -311,6 +315,11 @@
     } else {
       stato.textContent = T('Non hai ancora un accesso.');
     }
+    var prova = sfondo.querySelector('.aurora-acc-prova');
+    var inProva = !!(SY() && SY().prova);
+    prova.hidden = !inProva;
+    if (inProva) prova.textContent = T('Accesso di prova: questo account è finto. Non è su Google e non salva niente fuori da questo browser.');
+
     sfondo.querySelector('.aurora-foglio-spiega').textContent = u
       ? T('Foto, nome e data di nascita li vedi tu: sul database c’è una regola che li lascia leggere e scrivere solo a te, e si allineano sugli altri dispositivi dove hai lo stesso accesso.')
       : T('Senza accesso, il piano e questi dati restano su questo telefono: se svuoti i dati del browser o cambi telefono non si ritrovano. Con l’accesso si ritrovano, e li vedi solo tu.');

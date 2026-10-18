@@ -534,20 +534,21 @@
         ridisegnaElenco(card);
       }
 
-      /* Dopo «Aspetto» se c'è, altrimenti in cima: sono le due scelte che
-         riguardano l'app, non il piano. La posizione si giudica da chi sta
-         PRIMA della card, non da chi sta dopo: due moduli che si spostano a
-         vicenda si rincorrerebbero a ogni ridisegno, e ogni spostamento fa
-         ripartire l'animazione d'ingresso della card (che resterebbe a
-         opacita' zero per sempre). */
-      var aspetto = document.getElementById('aurora-aspetto');
-      var inCima = !!aspetto && aspetto.parentElement === dove.main;
+      /* Dopo «Lingua» e «Aspetto» se ci sono, altrimenti in cima: sono le
+         scelte che riguardano l'app, non il piano, e vanno per prime.
+         La posizione si giudica da chi sta PRIMA della card, non da chi sta
+         dopo: due moduli che si spostano a vicenda si rincorrerebbero a ogni
+         ridisegno, e ogni spostamento fa ripartire l'animazione d'ingresso
+         della card (che resterebbe a opacita' zero per sempre). */
+      var pred = document.getElementById('aurora-lingua') ||
+        document.getElementById('aurora-aspetto');
+      var inCima = !!pred && pred.parentElement === dove.main;
       var postoGiusto = card.parentElement === dove.main && (
-        inCima ? aspetto.nextElementSibling === card
+        inCima ? pred.nextElementSibling === card
                : dove.main.firstElementChild === card
       );
       if (!postoGiusto) {
-        dove.main.insertBefore(card, inCima ? aspetto.nextElementSibling : dove.main.firstElementChild);
+        dove.main.insertBefore(card, inCima ? pred.nextElementSibling : dove.main.firstElementChild);
       }
       aggiornaTasto();
     } finally {

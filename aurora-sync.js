@@ -606,10 +606,12 @@
     costruisci();
     sorvegliaScritture();
     if (PROVA) {
-      /* nel collaudo c'è già un accesso: serve a provare fusione e invio */
-      utente = { uid: 'prova', email: 'prova@esempio.it', nome: 'Prova' };
-      stile('inCorso', 'Prova: leggo il finto cloud…');
-      dopoAccesso();
+      /* Nel collaudo NON si entra da soli. Prima succedeva, e chi apriva
+         l'indirizzo di prova si trovava dentro come «prova@esempio.it» senza
+         aver toccato niente: sembrava un accesso vero che non funzionava.
+         Adesso si parte da fuori, si tocca «Accedi con Google» e l'accesso è
+         finto (vedi accedi()), che è anche il modo giusto di mostrare il tasto. */
+      stile('senzaAccesso', 'Accedi per non perdere il piano');
     } else {
       stile('senzaAccesso', 'Accedi per non perdere il piano');
       caricaFirebase().then(function (api) {

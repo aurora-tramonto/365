@@ -589,10 +589,12 @@
     return null;
   }
 
-  /* La card va DOPO «Promemoria» (e dopo «Aspetto» se quello manca): la
-     posizione si giudica da chi sta prima, mai da chi sta dopo — due moduli
-     che si spostano a vicenda farebbero ripartire l'animazione d'ingresso e la
-     card resterebbe invisibile. */
+  /* La card va DOPO «Aspetto» e PRIMA di «Promemoria»: la lingua è la scelta
+     che si cerca per prima, e in terza posizione restava sotto il bordo dello
+     schermo (segnalato: «non vedo la lingua»). La posizione si giudica da chi
+     sta prima, mai da chi sta dopo — due moduli che si spostano a vicenda
+     farebbero ripartire l'animazione d'ingresso e la card resterebbe
+     invisibile. Catena: Aspetto → Lingua → Promemoria. */
   var occupato = false;
 
   function aggiorna() {
@@ -606,8 +608,7 @@
 
       if (!card) card = costruisci();
 
-      var pred = document.getElementById('aurora-promemoria') ||
-        document.getElementById('aurora-aspetto');
+      var pred = document.getElementById('aurora-aspetto');
       var inMain = !!pred && pred.parentElement === dove.main;
       var postoGiusto = card.parentElement === dove.main && (
         inMain ? pred.nextElementSibling === card : dove.main.firstElementChild === card

@@ -721,6 +721,19 @@ html .aurora-foglio-spiega {
   text-align: left;
 }
 
+/* l'avviso dell'accesso di prova: si vede che è un avviso, non un errore */
+html .aurora-acc-prova {
+  margin: 0 0 14px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 12.5px/1.45 var(--body);
+  text-align: left;
+}
+
 html .aurora-foglio-azioni {
   display: flex;
   flex-direction: column;
