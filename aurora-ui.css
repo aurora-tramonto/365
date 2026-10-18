@@ -1811,3 +1811,37 @@ html .aurora-nascosto {
   white-space: nowrap;
   border: 0;
 }
+
+
+/* ============================================================================
+   §21 — CONTRASTO: DUE COLORI CHE NON SI LEGGEVANO
+   Misurato con la formula WCAG sulle pagine vere (non a occhio): il grigio
+   «faint» dell'app — quello dei contatori «1/420» e del cerchio della spunta
+   da vuotare — sta a 2,3:1 sul bianco nel tema chiaro e a 3,0:1 sul fondo
+   scuro: sotto il minimo di 4,5:1 per il testo e di 3:1 per i bordi dei
+   comandi. E il testo del messaggio del backup (il banner verde) sta a 4,2:1
+   in tema chiaro.
+
+   Qui si alzano quei due colori e basta: la gerarchia resta (il faint resta
+   piu' chiaro del «soft»), ma si legge. Non si tocca nient'altro del tema.
+   ============================================================================ */
+
+:root {
+  --faint: #71766f;                                  /* era #a9ada6 — 2,3:1 */
+  --nudge-ink: color-mix(in srgb, var(--soft) 86%, var(--ink));
+}
+
+:root[data-theme=dark] {
+  --faint: #8b908a;                                  /* era #5f655f — 3,0:1 */
+  --nudge-ink: var(--soft);                          /* sul verde scuro va gia' bene */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme=light]) {
+    --faint: #8b908a;
+    --nudge-ink: var(--soft);
+  }
+}
+
+html .nudge,
+html .nudge .link { color: var(--nudge-ink); }

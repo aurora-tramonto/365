@@ -371,7 +371,16 @@
   }
 
   /* restituisce true se del blocco ci siamo occupati noi (tradotto o già
-     rimesso in italiano), false se non è roba nostra */
+     rimesso in italiano), false se non è roba nostra — e in quel caso chi
+     cammina deve SCENDERE nei figli, che possono essere stati tradotti uno
+     per uno.
+     Il «false» non è un dettaglio: un contenitore con più nodi di testo e
+     nient'altro (il mese del calendario, «2 di 1189 capitoli letti») sembra un
+     blocco, ma non è nel dizionario. In italiano la prima versione diceva
+     «è roba nostra» e si fermava lì: i suoi pezzi, tradotti uno per uno
+     andando in inglese, restavano in inglese al ritorno. Difetto visto sul
+     sito vero: tornando in italiano la riga diceva ancora «2 of 1189 chapters
+     read» e il mese «October». */
   function bloccoRighe(nodo) {
     if (!L.righe) return false;
     var righe = righeCorrenti(nodo);
@@ -381,17 +390,22 @@
 
     if (ind < 0) {
       /* italiano: se l'avevamo tradotto, si rimette com'era */
-      if (nodo.__auroraRighe && nodo.__auroraRighe.join('\n') !== it) {
-        disegnaRighe(nodo, nodo.__auroraRighe);
-      }
+      if (!nodo.__auroraRighe) return false;   /* non è nostro: si scende nei figli */
+      if (nodo.__auroraRighe.join('\n') !== it) disegnaRighe(nodo, nodo.__auroraRighe);
       return true;
     }
 
     var voce = L.righe[it];
-    if (!voce) return !!nodo.__auroraRighe;   /* nostro, ma già tradotto */
+    if (!voce) {
+      /* già tradotto da noi e l'app non ha cambiato niente: si passa oltre.
+         Se invece il testo è diverso dall'ultima traduzione che abbiamo
+         scritto, l'app ha ridisegnato il blocco e va riletto pezzo per pezzo. */
+      return !!(nodo.__auroraRigheOut && nodo.__auroraRigheOut.join('\n') === it);
+    }
 
     var nuove = voce.split('|')[ind].split('\n');
     nodo.__auroraRighe = righe;
+    nodo.__auroraRigheOut = nuove;
     if (nuove.join('\n') !== it) disegnaRighe(nodo, nuove);
     return true;
   }

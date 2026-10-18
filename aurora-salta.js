@@ -150,7 +150,14 @@
 
     if (!resto) return { b: b, c1: 1, c2: quanti, v1: null, v2: null, libro: true };
 
-    var m = resto.match(/^(\d+)(?::(\d+)(?:-(\d+))?)?(?:-(\d+))?$/);
+    /* il versetto si separa con «:» (italiano, spagnolo, inglese) oppure con
+       «,» (tedesco: «Jesaja 22,15», che è anche quello che il segnaposto
+       suggerisce in tedesco). Prima si accettava solo «:», quindi chi
+       scriveva «Jesaja 22,15» leggeva «non riesco a leggere questa
+       indicazione» e nel messaggio gli veniva suggerito «Galater 5,1» —
+       che non funzionava nemmeno. Difetto trovato provando il pannello in
+       tedesco. */
+    var m = resto.match(/^(\d+)(?:[:,](\d+)(?:-(\d+))?)?(?:-(\d+))?$/);
     if (!m) return { b: b, rotto: true };
 
     var c1 = +m[1];
