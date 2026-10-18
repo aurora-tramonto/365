@@ -1524,6 +1524,13 @@ html .aurora-salta-sotto {
 
 html .aurora-salta-sotto:empty { display: none; }
 
+/* «Forse intendevi:» — la frase che introduce i nomi proposti quando il
+   libro è scritto storto. Sta sulla stessa riga dei bottoni, più spenta. */
+html .aurora-salta-forse {
+  font-size: 12.5px;
+  color: var(--soft);
+}
+
 
 /* ============================================================================
    IL SALTO A DITO — libro, capitolo, versetto (aurora-salta.js)

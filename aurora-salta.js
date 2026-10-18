@@ -124,9 +124,106 @@
 
   function trovaLibro(piatto) {
     for (var i = 0; i < NOMI.length; i++) {
-      if (piatto.indexOf(NOMI[i].n) === 0) return NOMI[i];
+      var n = NOMI[i].n;
+      if (piatto.indexOf(n) !== 0) continue;
+      /* il nome vale solo se quello che resta sono i numeri (o niente):
+         «giosuee» non è «Giosuè» con una «e» appiccicata */
+      if (piatto.length === n.length || /^\d/.test(piatto.charAt(n.length))) return NOMI[i];
     }
     return null;
+  }
+
+  /* Quanto sono diverse due parole: una lettera di troppo, una sbagliata, due
+     scambiate. Serve a dire «forse intendevi Giosuè» — a proporre, non a
+     decidere: chi scrive «giosuee» vede il nome giusto e lo tocca. */
+  function distanza(a, b) {
+    var m = a.length, n = b.length, i, j;
+    if (!m) return n;
+    if (!n) return m;
+    var riga = [];
+    for (j = 0; j <= n; j++) riga[j] = j;
+    for (i = 1; i <= m; i++) {
+      var prima = riga[0];
+      riga[0] = i;
+      for (j = 1; j <= n; j++) {
+        var vecchio = riga[j];
+        riga[j] = Math.min(riga[j] + 1, riga[j - 1] + 1,
+          prima + (a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1));
+        prima = vecchio;
+      }
+    }
+    return riga[n];
+  }
+
+  /* ------------------------------------------------- nomi scritti a metà ---
+     Nessuno scrive «1 Samuele» per intero quando ha fretta: scrive «isa 22»,
+     «1sa3», «gio 3». Qui il nome si accetta anche solo cominciato, purché non
+     ci siano dubbi. Se i libri possibili sono più d'uno si restituiscono
+     tutti e sceglie chi scrive: «gio 3» non è Giona più di quanto sia
+     Giosuè. Se invece niente comincia così, si propone il nome più
+     somigliante (un refuso, una lettera doppia, l'accento mancante che però
+     senzaAccenti toglie già da solo). */
+  function risolvi(piatto) {
+    var trovato = trovaLibro(piatto);
+    if (trovato) return { b: trovato.b, resto: piatto.slice(trovato.n.length) };
+
+    var quali = [], visti = {};
+    function aggiungi(b, resto) {
+      if (visti[b]) return;
+      visti[b] = true;
+      quali.push({ b: b, resto: resto });
+    }
+
+    NOMI.forEach(function (N) {
+      /* «1 Tessalonicesi» si scrive anche «tessalonicesi», senza il numero:
+         chi scrive «tess 4» vuole una delle due, e le vede tutte e due */
+      var forme = [N.n];
+      var senzaNumero = N.n.replace(/^\d+/, '');
+      if (senzaNumero !== N.n) forme.push(senzaNumero);
+
+      for (var f = 0; f < forme.length; f++) {
+        /* il nome è un pezzo di quello giusto: «isa» per «Isaia» */
+        if (forme[f] && forme[f].indexOf(piatto) === 0) { aggiungi(N.b, ''); return; }
+      }
+      for (f = 0; f < forme.length; f++) {
+        var nome = forme[f];
+        if (!nome) continue;
+        var daDove = Math.min(nome.length, piatto.length);
+        for (var k = daDove; k >= 2; k--) {
+          if (piatto.slice(0, k) !== nome.slice(0, k)) continue;
+          if (!/^\d/.test(piatto.slice(k))) continue;
+          aggiungi(N.b, piatto.slice(k));
+          return;
+        }
+      }
+    });
+    if (quali.length) {
+      /* nell'ordine della Bibbia, non in quello in cui sono capitati */
+      quali.sort(function (x, y) { return ORDINE.indexOf(x.b) - ORDINE.indexOf(y.b); });
+      return { quali: quali };
+    }
+
+    /* niente comincia così: si cerca il più somigliante. Al massimo un terzo
+       del nome di scarto, così «naum» non diventa «Numeri». */
+    var testa = piatto.replace(/\d+$/, '');
+    var forse = [];
+    NOMI.forEach(function (N) {
+      var d = Math.min(distanza(testa, N.n), distanza(piatto, N.n));
+      /* una lettera su tre di margine; una in più se il nome è lungo, perché
+         due lettere scambiate contano come due errori */
+      var tolleranza = Math.max(1, Math.floor(N.n.length / 3)) + (N.n.length >= 4 ? 1 : 0);
+      if (d === 0 || d > tolleranza) return;
+      forse.push({ b: N.b, d: d, resto: piatto.slice(testa.length) });
+    });
+    if (!forse.length) return null;
+    forse.sort(function (x, y) { return x.d - y.d; });
+    var minimo = forse[0].d, migliori = [], gia = {};
+    forse.forEach(function (o) {
+      if (o.d !== minimo || gia[o.b]) return;
+      gia[o.b] = true;
+      migliori.push(o);
+    });
+    return { forse: migliori.slice(0, 4) };
   }
 
   /* «isaia 22:15» → { b, c1, c2, v1, v2 } — oppure { ignoto } / { fuori } */
@@ -141,11 +238,21 @@
     }
     var piatto = compatto(t);
 
-    var trovato = trovaLibro(piatto);
-    if (!trovato) return { ignoto: true };
+    /* una lettera sola non è ancora una scelta: «g» è Genesi, Giudici, Giona… */
+    if (piatto.length < 2) return { scrivendo: true };
 
-    var resto = piatto.slice(trovato.n.length);
-    var b = trovato.b;
+    var r = risolvi(piatto);
+    if (!r) return { ignoto: true };
+    if (r.forse) return { ignoto: true, forse: r.forse };
+    if (r.quali) {
+      if (r.quali.length > 1) return { quali: r.quali };
+      return leggiDopo(r.quali[0].b, r.quali[0].resto);
+    }
+    return leggiDopo(r.b, r.resto);
+  }
+
+  /* il libro, e che cosa viene dopo il nome: i numeri, o niente */
+  function leggiDopo(b, resto) {
     var quanti = CAPITOLI[b].length;
 
     if (!resto) return { b: b, c1: 1, c2: quanti, v1: null, v2: null, libro: true };
@@ -161,14 +268,17 @@
     if (!m) return { b: b, rotto: true };
 
     var c1 = +m[1];
-    if (c1 < 1 || c1 > quanti) return { b: b, fuori: true, max: quanti, tipo: 'capitoli' };
+    if (c1 < 1 || c1 > quanti) {
+      return { b: b, fuori: true, max: quanti, tipo: 'capitoli', rif: b + ' ' + c1 };
+    }
 
     var versi = CAPITOLI[b][c1 - 1];
 
     if (m[2]) {
       var v1 = +m[2], v2 = m[3] ? +m[3] : v1;
       if (v1 < 1 || v2 < v1 || v2 > versi) {
-        return { b: b, fuori: true, max: versi, tipo: 'versetti', capitolo: c1 };
+        return { b: b, fuori: true, max: versi, tipo: 'versetti', capitolo: c1,
+          rif: b + ' ' + c1 + ':' + m[2] + (m[3] ? '-' + m[3] : '') };
       }
       return { b: b, c1: c1, c2: c1, v1: v1, v2: v2 };
     }
@@ -180,6 +290,15 @@
     }
 
     return { b: b, c1: c1, c2: c1, v1: null, v2: null };
+  }
+
+  /* il riferimento come si scrive, da quello che è stato capito: serve nei
+     messaggi, così «isa 22» diventa «Isaia 22» e si capisce di che si parla */
+  function testoRef(q) {
+    if (!q || !q.b) return '';
+    if (!q.c1 || q.libro) return q.b;
+    if (q.v1) return q.b + ' ' + q.c1 + ':' + q.v1 + (q.v2 && q.v2 !== q.v1 ? '-' + q.v2 : '');
+    return q.b + ' ' + q.c1 + (q.c2 && q.c2 !== q.c1 ? '-' + q.c2 : '');
   }
 
   /* le letture del piano sono scritte come «Genesi 1-3» o «Salmo 119:1-106» */
@@ -660,11 +779,16 @@
     pezzi.chiede.textContent = '';
     pezzi.no.hidden = true;
     pezzi.no.textContent = '';
-    while (sotto.firstChild && sotto.firstChild !== pezzi.no) sotto.removeChild(sotto.firstChild);
+    /* via i suggerimenti della volta prima: restano solo i due pezzi fissi
+       della riga (il «no» e il perché). Prima si fermava al primo figlio
+       diverso, quindi i bottoni aggiunti in coda restavano lì per sempre. */
+    Array.prototype.slice.call(sotto.childNodes).forEach(function (nodo) {
+      if (nodo !== pezzi.no) sotto.removeChild(nodo);
+    });
     eco.className = 'aurora-salta-eco';
 
     if (q.vuoto) {
-      eco.textContent = T('Tocca il libro, poi il capitolo, poi il versetto — oppure scrivi il riferimento.');
+      eco.textContent = T('Tocca il libro, poi il capitolo, poi il versetto — oppure scrivi il riferimento, anche abbreviato: «isa 22».');
       return;
     }
 
@@ -674,26 +798,64 @@
       return;
     }
 
+    /* una lettera sola non è ancora una scelta: «g» è Genesi e Giona insieme */
+    if (q.scrivendo) {
+      eco.textContent = T('Continua a scrivere il nome del libro, oppure tocca il libro qui sopra.');
+      return;
+    }
+
+    /* più libri cominciano così: il numero c'è, il nome no — si fa scegliere.
+       Il numero scritto non va perso: «gio 3» diventa «Giona 3» o «Giosuè 3». */
+    function proponi(b, resto) {
+      var tasto = document.createElement('button');
+      tasto.type = 'button';
+      tasto.className = 'link';
+      tasto.textContent = b;
+      tasto.addEventListener('click', function () {
+        campo.value = resto ? b + ' ' + resto : b;
+        /* come se fosse stato scritto: la scelta segue il testo, altrimenti i
+           tre passi resterebbero fermi sul libro toccato prima */
+        box.__digitato = true;
+        aggiorna(edit);
+        campo.focus();
+      });
+      sotto.appendChild(tasto);
+    }
+
+    if (q.quali) {
+      eco.className = 'aurora-salta-eco attenzione';
+      eco.textContent = T('Quale libro? Tocca quello giusto:');
+      /* prima i libri che questo piano legge davvero: «fil 2» è Filippesi,
+         non Filemone, se Filemone non c'è nel piano */
+      var nelPiano = {};
+      piano.forEach(function (r) {
+        var p = partiRef(r);
+        if (p) nelPiano[p.b] = true;
+      });
+      var ordine = q.quali.slice();
+      ordine.sort(function (x, y) { return (nelPiano[y.b] ? 1 : 0) - (nelPiano[x.b] ? 1 : 0); });
+      ordine.slice(0, 6).forEach(function (o) { proponi(o.b, o.resto); });
+      return;
+    }
+
     if (q.ignoto) {
       eco.textContent = T('Non conosco «' + campo.value.trim() + '».');
       eco.className = 'aurora-salta-eco err';
-      /* qualche nome che comincia come quello scritto: si tocca e si riprova */
-      var prime = senzaAccenti(campo.value).replace(/\s+/g, '').slice(0, 3);
-      var simili = [];
-      NOMI.forEach(function (o) { if (o.n.indexOf(prime) === 0 && simili.length < 3) simili.push(o.b); });
-      simili.forEach(function (b) {
-        var tasto = document.createElement('button');
-        tasto.type = 'button';
-        tasto.className = 'link';
-        tasto.textContent = b;
-        tasto.addEventListener('click', function () { campo.value = b; aggiorna(edit); campo.focus(); });
-        sotto.appendChild(tasto);
-      });
+      /* il nome più somigliante: si tocca e la frase si ricompone da sola */
+      if (q.forse && q.forse.length) {
+        var avviso = document.createElement('span');
+        avviso.className = 'aurora-salta-forse';
+        avviso.textContent = T('Forse intendevi:');
+        sotto.appendChild(avviso);
+        q.forse.forEach(function (o) { proponi(o.b, o.resto); });
+      }
       return;
     }
 
     if (q.fuori) {
-      var rif = campo.value.trim();
+      /* il nome come si scrive davvero, non come l'ha scritto chi ha fretta:
+         «isa 99» → «Isaia 99» */
+      var rif = q.rif || campo.value.trim();
       eco.className = 'aurora-salta-eco err';
       eco.textContent = q.tipo === 'versetti'
         ? T('«' + rif + '» non esiste: ' + q.b + ' ' + q.capitolo + ' ha ' + q.max + ' versetti.')
@@ -710,7 +872,7 @@
     var idx = letturaDi(piano, q.b, q.c1, q.v1);
     if (idx < 0) {
       eco.className = 'aurora-salta-eco err';
-      eco.textContent = T('«' + campo.value.trim() + '» non è in questo piano.');
+      eco.textContent = T('«' + (testoRef(q) || campo.value.trim()) + '» non è in questo piano.');
       return;
     }
 
@@ -840,7 +1002,9 @@
     pezzi.fai.textContent = T('Riprendi da qui');
     pezzi.no.hidden = true;
     pezzi.chiede.hidden = true;
-    while (pezzi.sotto.firstChild && pezzi.sotto.firstChild !== pezzi.no) pezzi.sotto.removeChild(pezzi.sotto.firstChild);
+    Array.prototype.slice.call(pezzi.sotto.childNodes).forEach(function (nodo) {
+      if (nodo !== pezzi.no) pezzi.sotto.removeChild(nodo);
+    });
     box.__sel = { b: null, c: null, v: null };
     box.__aperto = null;
     box.__firma = '';
