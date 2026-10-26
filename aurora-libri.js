@@ -349,7 +349,7 @@
      piano. Così la card si riapre come l'hai lasciata anche su un altro
      dispositivo, dopo la sincronizzazione, e il piano dell'app non viene
      scambiato per un'alternanza che non è la sua. */
-  function statoDalPiano(nuovo, n, orig) {
+  function statoDalPiano(nuovo, n, orig, letti) {
     /* quante volte un libro compare in ciascuna lettura: se l'app l'ha diviso a
        metà fra due letture, lo si tiene dove ne ha di più */
     var passiPerLibro = {};
@@ -391,8 +391,12 @@
 
     var alterna = [], parallelo = [];
     nuovo.forEach(function (passi, i) {
+      /* I passi letti DOPO la costruzione del piano non fanno parte del confronto:
+         la costruzione li toglie, il piano salvato li ha ancora (spuntati), e
+         senza questo filtro nessun modo tornerebbe uguale. */
+      var resto = nonLetti(passi, letti);
       if (libri[i].length < 2) { alterna.push('seguiti'); parallelo.push(1); return; }
-      if (uguali(passiLettura(libri[i], i, partenza[i], 'seguiti', n, orig, 1).passi, passi)) {
+      if (uguali(passiLettura(libri[i], i, partenza[i], 'seguiti', n, orig, 1, letti).passi, resto)) {
         alterna.push('seguiti'); parallelo.push(1); return;
       }
       /* è un'alternanza: resta da capire fra quanti libri. Si prova prima
@@ -401,7 +405,7 @@
       var prova = [0];
       for (var q = libri[i].length; q >= 2; q--) prova.push(q);
       for (var w2 = 0; w2 < prova.length; w2++) {
-        if (uguali(passiLettura(libri[i], i, partenza[i], 'giro', n, orig, prova[w2]).passi, passi)) {
+        if (uguali(passiLettura(libri[i], i, partenza[i], 'giro', n, orig, prova[w2], letti).passi, resto)) {
           alterna.push('giro'); parallelo.push(prova[w2]); return;
         }
       }
@@ -459,8 +463,12 @@
     var orig = !!(s.settings && s.settings.template === 'orig');
     var ts = s.ts || 0;
 
+    /* i versetti già letti: si ricalcolano sempre, perché spuntare un passo non
+       cambia `ts` ma cambia quello che il piano nuovo deve lasciar fuori */
+    var lettiOra = lettiDelPiano(s);
+
     if (!stato || stato.nuovo !== ts || stato.n !== n || stato.orig !== orig) {
-      var base = statoDalPiano(s.plan, n, orig);
+      var base = statoDalPiano(s.plan, n, orig, lettiOra);
       var salvata = sceltaSalvata(ts, n);
       /* due copie e non una: muovendo un libro si cambia lo stato, e il piano
          com'era deve restare com'era — se i due si dividessero gli stessi
@@ -487,19 +495,29 @@
       stato.base = copia(base);
       stato.nuovo = ts;
     }
+    stato.letti = lettiOra;
     return stato;
   }
 
   /* ------------------------------------------------------------ costruire il piano */
 
-  function passiLettura(libri, indice, partenza, modo, n, orig, par) {
+  function passiLettura(libri, indice, partenza, modo, n, orig, par, letti) {
     var ordine = ordinati(libri);
     if (partenza) {
       var k = ordine.indexOf(partenza);
       if (k > 0) ordine = ordine.slice(k).concat(ordine.slice(0, k));
     }
     var tetto = tettoLettura(indice, n, orig);
-    var perLibro = ordine.map(function (b) { return passiLibro(b, tetto); });
+    /* PRIMA di alternare, si tolgono i passi già letti: così la lettura comincia
+       da dove sei arrivato. Filtrando dopo l'alternanza il primo passo sarebbe
+       quello di un altro libro, e soprattutto il piano comincerebbe con i
+       capitoli già spuntati che l'app ripropone uno al giorno. */
+    var perLibro = ordine.map(function (b) { return nonLetti(passiLibro(b, tetto), letti); });
+    var qualcosa = false;
+    for (var q0 = 0; q0 < perLibro.length; q0++) if (perLibro[q0].length) qualcosa = true;
+    /* una lettura già letta tutta non può restare vuota: si mostra com'era, con
+       i suoi passi spuntati, invece di una scheda senza niente dentro */
+    if (!qualcosa) perLibro = ordine.map(function (b) { return passiLibro(b, tetto); });
     var passi = [];
 
     if (modo === 'giro' && perLibro.length > 1) {
@@ -545,7 +563,7 @@
     if (!s || !s.libri) return [];
     var n = s.libri.length;
     return s.libri.map(function (libri, i) {
-      return passiLettura(libri, i, s.partenza && s.partenza[i], s.alterna && s.alterna[i], n, s.orig, parDi(s, i));
+      return passiLettura(libri, i, s.partenza && s.partenza[i], s.alterna && s.alterna[i], n, s.orig, parDi(s, i), s.letti);
     });
   }
 
@@ -599,6 +617,29 @@
     if (!capitoli || !capitoli[p.capitolo]) return false;
     for (var i = p.v1; i <= p.v2; i++) if (!capitoli[p.capitolo][i]) return false;
     return true;
+  }
+
+  /* Che cosa è già stato letto, preso dal piano che c'è: i passi spuntati dentro
+     il piano (`done`) e quelli letti fuori piano (`pre`, `extra`). Serve a non
+     rimettere nei passi nuovi i capitoli già letti. */
+  function lettiDelPiano(vecchio) {
+    var mappa = {};
+    if (!vecchio) return mappa;
+    (vecchio.plan || []).forEach(function (passi, i) {
+      var fatti = (vecchio.done && vecchio.done[i]) || [];
+      for (var k = 0; k < fatti.length; k++) marca(mappa, passi[fatti[k]]);
+    });
+    (vecchio.pre || []).forEach(function (p) { marca(mappa, p); });
+    (vecchio.extra || []).forEach(function (p) { marca(mappa, p); });
+    return mappa;
+  }
+
+  /* i passi che restano da leggere */
+  function nonLetti(passi, letti) {
+    if (!letti) return passi;
+    var fuori = [];
+    for (var i = 0; i < passi.length; i++) if (!lettoTutto(letti, passi[i])) fuori.push(passi[i]);
+    return fuori;
   }
 
   function dataOggi() {
