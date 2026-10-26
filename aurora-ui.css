@@ -1852,3 +1852,214 @@ html .aurora-nascosto {
 
 html .nudge,
 html .nudge .link { color: var(--nudge-ink); }
+
+
+/* ============================================================================
+   §22 — I LIBRI DI OGNI LETTURA (aurora-libri.js)
+   Una card sola, nelle Impostazioni, subito dopo «Ritmo del piano»: tre letture
+   una sotto l'altra, con le parti della Bibbia come pastiglie da accendere e
+   una tendina per dire da dove comincia ciascuna. Sotto, il conto in chiaro:
+   quanti passi e quanti versetti al giorno. Le pastiglie già accese sono
+   quelle dell'app (`aria-pressed`), così il tema chiaro e quello scuro non
+   vanno toccati.
+   ============================================================================ */
+
+html .aurora-libri-riga {
+  padding: 12px 0;
+  border-top: 1px solid var(--line-soft);
+}
+
+html .aurora-libri-riga:first-child { border-top: 0; padding-top: 4px; }
+
+html .aurora-libri-testa {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+html .aurora-libri-testa b { font-weight: 600; }
+
+html .aurora-libri-testa .dot {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 9px;
+}
+
+html .aurora-libri-parti {
+  margin: 0 0 8px;
+}
+
+html .aurora-libri-parti .chip {
+  font-size: 11.5px;
+  padding: 5px 10px;
+}
+
+html .aurora-libri-da {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  color: var(--soft);
+}
+
+html .aurora-libri-da select {
+  flex: 1 1 140px;
+  min-width: 0;
+  padding: 7px 10px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font: 500 13px var(--body);
+}
+
+html .aurora-libri-da select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+html .aurora-libri-conto {
+  margin: 6px 0 0;
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--soft);
+}
+
+html .aurora-libri-preset { margin: 14px 0 0; }
+
+html .aurora-libri-preset .chip {
+  font-size: 12px;
+  text-align: left;
+}
+
+html .aurora-libri-azioni { margin: 12px 0 0; }
+
+html .aurora-libri-azioni .btn { margin-top: 8px; }
+
+html .aurora-libri-azioni .btn[disabled] { opacity: .45; }
+
+@media (min-width: 620px) {
+  html .aurora-libri-scelte {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 16px;
+  }
+  html .aurora-libri-riga,
+  html .aurora-libri-riga:first-child {
+    padding: 0;
+    border-top: 0;
+  }
+}
+
+
+/* ============================================================================
+   §22b — I LIBRI, UNO PER UNO (aurora-libri.js)
+   La scelta libro per libro e l'alternanza «a giro»: una pastiglia in più per
+   ogni lettura e, sotto le tre colonne, l'elenco completo dei libri a tutta
+   larghezza (in una colonna da un terzo sarebbe illeggibile). La parte divisa a
+   metà si vede dal bordo tratteggiato: non mente, e non si confonde con una
+   parte accesa per intero.
+   ============================================================================ */
+
+html .aurora-libri-corta {
+  margin-left: auto;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  font: 600 10.5px var(--body);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+html .aurora-libri-parti .chip[data-stato="alcuni"] {
+  border-style: dashed;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+html .aurora-libri-apri,
+html .aurora-libri-modo { margin: 0 0 8px; }
+
+html .aurora-libri-apri .chip,
+html .aurora-libri-modo .chip {
+  font-size: 11.5px;
+  padding: 5px 10px;
+}
+
+/* Quanti libri in simultanea: un «− valore +» stretto, che sta in una colonna da
+   un terzo senza mandare a capo l'etichetta. Il numero è quello che conta, e sta
+   in mezzo alle due frecce come su una bilancia. */
+html .aurora-libri-par {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--soft);
+}
+
+html .aurora-libri-par b {
+  min-width: 34px;
+  text-align: center;
+  font: 600 13px var(--body);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+html .aurora-libri-par-su {
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* La riga che spiega il numero scelto: piccola e senza margini suoi, perché sta
+   subito sotto le frecce e deve sembrare parte della stessa frase. */
+html .aurora-libri-par-nota {
+  margin: -4px 0 10px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--soft);
+}
+
+html .aurora-libri-freccia {
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0 8px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+html .aurora-libri-freccia[disabled] { opacity: .35; }
+
+html .aurora-libri-elenco {
+  margin: 14px 0 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+}
+
+html .aurora-libri-elenco .aurora-libri-testa { margin-bottom: 4px; }
+
+html .aurora-libri-gruppo { margin: 12px 0 0; }
+
+html .aurora-libri-gruppo h3 {
+  margin: 0 0 6px;
+  font: 600 11px var(--body);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+
+html .aurora-libri-gruppo .chips { gap: 6px; }
+
+html .aurora-libri-gruppo .chip {
+  font-size: 11.5px;
+  padding: 4px 9px;
+  min-height: 32px;
+}
+
+html .aurora-libri-elenco .aurora-libri-azioni { margin: 16px 0 0; }
