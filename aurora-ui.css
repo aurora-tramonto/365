@@ -2063,3 +2063,9 @@ html .aurora-libri-gruppo .chip {
 }
 
 html .aurora-libri-elenco .aurora-libri-azioni { margin: 16px 0 0; }
+
+/* Un solo campo per il codice di backup. La card «Importa dalla versione
+   locale» serve solo a chi ha ancora un codice della vecchia pagina HTML: resta
+   nel documento ma invisibile, e torna aprendo l'app con ?codice-vecchio=1.
+   Vedi proposte/aurora-codici.js. */
+html .card.aurora-codici-via { display: none !important; }
